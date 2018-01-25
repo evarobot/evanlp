@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 import sys
 
-from vikinlp.util.uniout import make_unistream
+from vikinlu.util.uniout import make_unistream
 
 
 try:

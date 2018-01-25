@@ -1,0 +1,14 @@
+# Created by .ignore support plugin (hsz.mobi)
+*.pyc
+config.py
+utilities/*
+.idea/
+.DS_Store
+.*sw*
+backup
+__pycache__
+.cache
+viki_qa/log/
+/data
+*log
+.ropeproject
