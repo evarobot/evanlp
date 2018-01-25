@@ -1,0 +1,16 @@
+[31m[E 170828 10:28:11 intent_model:97](B[m too many values to unpack
+[31m[E 170828 10:28:11 intent_model:98](B[m   349568
+[32m[I 170828 10:28:11 intent_model:333](B[m 冲突的规则数目：76
+[32m[I 170828 10:28:11 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 19
+[32m[I 170828 10:28:11 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 190
+[32m[I 170828 10:28:11 intent_model:453](B[m sample num: 237
+[32m[I 170828 10:28:11 intent_model:454](B[m label num: 63
+[32m[I 170828 10:28:11 intent_model:455](B[m test passed: 235
+[31m[E 170828 10:28:33 intent_model:97](B[m too many values to unpack
+[31m[E 170828 10:28:33 intent_model:98](B[m   349568
+[32m[I 170828 10:28:34 intent_model:333](B[m 冲突的规则数目：76
+[32m[I 170828 10:28:34 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 19
+[32m[I 170828 10:28:34 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 190
+[32m[I 170828 10:28:34 intent_model:453](B[m sample num: 237
+[32m[I 170828 10:28:34 intent_model:454](B[m label num: 63
+[32m[I 170828 10:28:34 intent_model:455](B[m test passed: 235

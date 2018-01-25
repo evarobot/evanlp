@@ -1,0 +1,38 @@
+[31m[E 170831 10:53:07 intent_model:97](B[m too many values to unpack
+[31m[E 170831 10:53:07 intent_model:98](B[m   349568
+[32m[I 170831 10:53:07 intent_model:333](B[m 冲突的规则数目：76
+[32m[I 170831 10:53:07 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 19
+[32m[I 170831 10:53:07 intent_model:450](B[m 数据有误，不同的label对应着相同数据: 190
+[32m[I 170831 10:53:07 intent_model:453](B[m sample num: 237
+[32m[I 170831 10:53:07 intent_model:454](B[m label num: 63
+[32m[I 170831 10:53:07 intent_model:455](B[m test passed: 235
+[31m[E 170831 10:53:44 intent_model:97](B[m too many values to unpack
+[31m[E 170831 10:53:44 intent_model:98](B[m   349568
+[32m[I 170831 10:53:45 intent_model:333](B[m 冲突的规则数目：0
+[32m[I 170831 10:53:45 intent_model:453](B[m sample num: 9
+[32m[I 170831 10:53:45 intent_model:454](B[m label num: 3
+[32m[I 170831 10:53:45 intent_model:455](B[m test passed: 9
+[31m[E 170831 10:55:20 intent_model:97](B[m too many values to unpack
+[31m[E 170831 10:55:20 intent_model:98](B[m   349568
+[32m[I 170831 10:55:20 intent_model:334](B[m 冲突的规则数目：0
+[32m[I 170831 10:55:20 intent_model:454](B[m sample num: 9
+[32m[I 170831 10:55:20 intent_model:455](B[m label num: 3
+[32m[I 170831 10:55:20 intent_model:456](B[m test passed: 9
+[E 170831 10:56:23 intent_model:97] too many values to unpack
+[E 170831 10:56:23 intent_model:98]   349568
+[I 170831 10:56:23 intent_model:334] 冲突的规则数目：0
+[I 170831 10:56:23 intent_model:454] sample num: 9
+[I 170831 10:56:23 intent_model:455] label num: 3
+[I 170831 10:56:23 intent_model:456] test passed: 9
+[E 170831 10:56:58 intent_model:97] too many values to unpack
+[E 170831 10:56:58 intent_model:98]   349568
+[I 170831 10:56:58 intent_model:335] 冲突的规则数目：0
+[I 170831 10:56:58 intent_model:455] sample num: 9
+[I 170831 10:56:58 intent_model:456] label num: 3
+[I 170831 10:56:58 intent_model:457] test passed: 9
+[E 170831 10:59:18 intent_model:97] too many values to unpack
+[E 170831 10:59:18 intent_model:98]   349568
+[I 170831 10:59:18 intent_model:335] 冲突的规则数目：0
+[I 170831 10:59:18 intent_model:456] sample num: 9
+[I 170831 10:59:18 intent_model:457] label num: 3
+[I 170831 10:59:18 intent_model:458] test passed: 9
