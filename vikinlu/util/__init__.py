@@ -1,3 +1,5 @@
 
-from .util import PROJECT_DIR, is_punctuation
+from evecms.services.service import EVECMSService
+
+cms_rpc = EVECMSService()
 
