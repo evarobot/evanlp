@@ -6,9 +6,10 @@ import mongoengine as db
 
 class IntentQuestion(db.Document):
     domain = db.StringField(required=True)
+    treenode = db.StringField(required=True)
     label = db.StringField(required=True)
-    question = db.StringField(required=True, unique_with="label")
+    question = db.StringField(required=True)
 
     meta = {
-        'indexes': [('domain', 'question')]
+        'indexes': [('treenode', 'question')]
     }

@@ -7,7 +7,7 @@ from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.model import IntentQuestion
-from vikinlu.util import dm_rpc
+from vikinlu.util import cms_rpc
 
 
 log = logging.getLogger(__name__)
@@ -32,26 +32,20 @@ class NLURobot(object):
         return robot
 
     def train(self, algorithm):
-        label_data = dm_rpc.get_label_data(self.domain_id)
-        self._train_without_context(self.domain_id, algorithm, label_data)
-        # self._train_with_context()
+        log.debug("get_tree_label_data")
+        label_data = cms_rpc.get_tree_label_data(self.domain_id)
+        log.debug("train with context")
+        # save strict model
+        for td in label_data:
+            IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
+        # save fuzzy model
 
     def _load_biztree(self):
         pass
 
-    def _train_without_context(self, domain_id, algorithm, label_data):
-        # save strict model
-        for label, questions in label_data.iteritems():
-            for q in questions:
-                IntentQuestion(domain=domain_id, label=label, question=q).save()
-        # save fuzzy model
-
-    def _train_with_context(self, biztree):
-        # save strict model
-        # save fuzzy model
-        pass
 
     def predict(self, question):
+        log.debug("Sensitive detecting.")
         if self._sensitive.detect(question):
             return {
                 "question": question,
@@ -59,25 +53,10 @@ class NLURobot(object):
                 "confidence": 1.0,
                 "slots": {}
             }
-        if self._in_context():
-            log.debug("上下文识别")
-            ret = self._do_context_nlu(question)
-        else:
-            log.debug("非上下文识别")
-            ret = self._do_none_context_nlu(question)
-        return ret
-
-    def _in_context(self):
-        return False
-
-    def _do_context_nlu(self, question):
-        pass
-
-    def _get_sub_slots(self, focus_node):
-        pass
-
-    def _do_none_context_nlu(self, question):
+        log.debug("Do strictly classify.")
         label, confidence = self._intent.strict_classify(question)
+
+        log.debug("Do casual vs. none casual classify.")
         if not label and self._intent.is_casual_talk(question):
             return {
                 "question": question,
@@ -85,13 +64,20 @@ class NLURobot(object):
                 "confidence": 1.0,
                 "slots": {}
             }
-        if not label:
+
+        if label is None:
             label, confidence = self._intent.fuzzy_classify(question)
-        slot_ids = self._get_sub_slots()
-        d_slots = self._slot.recognize(question, slot_ids)
+
+        log.debug("Do slot recognize")
+        slot_names = self._get_sub_slots()
+        d_slots = self._slot.recognize(question, slot_names)
         return {
             "question": question,
             "intent": label,
             "confidence": confidence,
             "slots": d_slots,
         }
+
+
+    def _get_sub_slots(self, focus_node):
+        pass

@@ -19,13 +19,17 @@ class IntentRecognizer(object):
 
     def strict_classify(self, question):
         try:
-            ret = IntentQuestion.objects.get(domain=self._domain_id, question=question)
-        except IntentQuestion.DoesNotExisit:
+            ret = IntentQuestion.objects(domain=self._domain_id, question=question)
+        except IntentQuestion.DoesNotExist:
             return None
-        return ret.label, 1.0
+        if ret:
+            ret = ret[0]
+            return ret.label, 1.0
+        else:
+            return None, 1.0
 
     def fuzzy_classify(self, question):
-        pass
+        return None, 1.0
 
     def is_casual_talk(self, question):
         return False

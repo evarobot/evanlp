@@ -19,7 +19,7 @@ class SlotRecognizer(object):
                 ret = cms_rpc.get_value(value_id)
                 ret["words"].append(ret["name"])
                 d_values[ret["name"]] = ret["words"]
-            self._slots[slot["id"]] = {
+            self._slots[slot["name"]] = {
                 "name": slot["name"],
                 "values": d_values
             }
@@ -30,11 +30,13 @@ class SlotRecognizer(object):
         slot.init_slots(domain_id)
         return slot
 
-    def recognize(self, question, slot_ids):
+    def recognize(self, question, slot_names):
         slots = {}
-        for slot_id in slot_ids:
-            d_slot = self._slots[slot_id]
+        for slot_name in slot_names:
+            d_slot = self._slots[slot_name]
             for value_name, value_pattern in d_slot["values"].iteritems():
+                if value_name.startswith('@'):
+                    log.debug("query database %s" % value_name)
                 ret = KeyWordEntity.recognize(question, value_pattern)
                 if ret:
                     slots[d_slot["name"]] = value_name
