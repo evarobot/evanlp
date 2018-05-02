@@ -7,7 +7,7 @@ from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.model import IntentQuestion
-from vikinlu.util import cms_rpc, dm_rpc
+from vikinlu.util import cms_rpc
 
 
 log = logging.getLogger(__name__)
