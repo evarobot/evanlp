@@ -86,7 +86,7 @@ class _ConfigMongo:
 
 
 class _ConfigApps(object):
-    data_path = "/src/VikiQA/data"
+    data_path = "/src/vikinlu/data"
     apps_path = os.path.join(data_path, "apps")
 
 

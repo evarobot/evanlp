@@ -36,8 +36,13 @@ class SlotRecognizer(object):
             d_slot = self._slots[slot_name]
             for value_name, value_pattern in d_slot["values"].iteritems():
                 if value_name.startswith('@'):
+                    #  TODO:  <29-04-18, yourname> #
+                    if value_name == "@date":
+                        value_pattern = [u"今天", u"明天"]
                     log.debug("query database %s" % value_name)
                 ret = KeyWordEntity.recognize(question, value_pattern)
                 if ret:
+                    if value_name.startswith("@"):
+                        value_name = ret[0]
                     slots[d_slot["name"]] = value_name
         return slots

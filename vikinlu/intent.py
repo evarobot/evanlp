@@ -17,18 +17,22 @@ class IntentRecognizer(object):
     def _load_model(self):
         pass
 
-    def strict_classify(self, question):
+    def strict_classify(self, context, question):
         try:
-            ret = IntentQuestion.objects(domain=self._domain_id, question=question)
+            objects = IntentQuestion.objects(domain=self._domain_id, question=question)
         except IntentQuestion.DoesNotExist:
-            return None
-        if ret:
-            ret = ret[0]
-            return ret.label, 1.0
-        else:
             return None, 1.0
+        if len(objects) > 1:
+            for unit in context["agents"]:
+                tag, intent, id_ = tuple(unit)
+                for candicate in objects:
+                    if candicate.treenode == id_:
+                        return candicate.label, 1.0
+        elif len(objects) == 1:
+            return objects[0].label, 1.0
+        return None, 1.0
 
-    def fuzzy_classify(self, question):
+    def fuzzy_classify(self, context, question):
         return None, 1.0
 
     def is_casual_talk(self, question):
