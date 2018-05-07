@@ -55,14 +55,14 @@ class NLURobot(object):
         # call rpc with dm_robot_id or call with dm robot directly
         dm_robot = dm_robot_id
         context = dm_robot.get_context()
-        label, confidence = self._intent_classify(context, question)
+        intent, confidence = self._intent_classify(context, question)
         d_slots = {}
-        if label and label not in ["sensitive", "casual_talk"]:
+        if intent and intent not in ["sensitive", "casual_talk"]:
             d_slots = self._slot.recognize(question, context["valid_slots"])
             log.debug("SLOTS DETECT to {0}".format(d_slots))
         return {
             "question": question,
-            "intent": label,
+            "intent": intent,
             "confidence": confidence,
             "slots": d_slots,
         }
@@ -71,14 +71,14 @@ class NLURobot(object):
         log.debug("Sensitive detecting.")
         if self._sensitive.detect(question):
             return "sensitive", 1.0
-        label, confidence = self._intent.strict_classify(context, question)
-        log.info("STRICTLY CLASSIFY to [{0}]".format(label))
-        if label:
-            return label, confidence
+        intent, confidence = self._intent.strict_classify(context, question)
+        log.info("STRICTLY CLASSIFY to [{0}]".format(intent))
+        if intent:
+            return intent, confidence
         if self._intent.is_casual_talk(question):
             log.info("BINARY CLASSIFY to [casual_talk]")
             return "casual_talk", 1.0
-        if label is None:
-            label, confidence = self._intent.fuzzy_classify(context, question)
-            log.info("FUZZY CLASSIFY to {0}".format(label))
-        return label, confidence
+        if intent is None:
+            intent, confidence = self._intent.fuzzy_classify(context, question)
+            log.info("FUZZY CLASSIFY to {0}".format(intent))
+        return intent, confidence

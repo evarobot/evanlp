@@ -102,10 +102,9 @@ def atest_train():
     cms_rpc.get_tree_label_data = mock.Mock(return_value=mock_label_data)
     service.train(domain_id, ("logistic", "0.1"))
     db.assert_intent_question("C", mock_label_data)
-    #  TODO:  模型训练
 
 
-def test_intent():
+def atest_intent():
     domain_id = "C"
     intent = IntentRecognizer.get_intent_recognizer(domain_id)
     mock_context = []
@@ -113,9 +112,9 @@ def test_intent():
         tr, intent, question = q
         assert(intent == intent.strict_classify(mock_context, question)[0])
     mock_fuzzy_result = []
-    #  TODO:  <07-05-18, yourname> #
     for data in mock_fuzyy_result:
         tr, intent, question = q
+        assert(intent == intent.fuzzy_classify(mock_context, question)[0])
 
 
 
