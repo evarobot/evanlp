@@ -11,5 +11,5 @@ class IntentQuestion(db.Document):
     question = db.StringField(required=True)
 
     meta = {
-        'indexes': [('treenode', 'question')]
+        'indexes': [('domain', 'question')]
     }

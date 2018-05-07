@@ -6,11 +6,12 @@ import mongoengine
 import mock
 
 from vikicommon.log import init_logger
-from vikinlu.config import ConfigMongoTest
+from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.service import NLUService
 from vikinlu.util import cms_rpc
+from vikinlu.intent import IntentRecognizer
 import util as db
 from evecms.models import (
     Domain,
@@ -21,10 +22,11 @@ init_logger(level="DEBUG", path="./")
 log = logging.getLogger(__name__)
 dm_robot_id = "12345"
 
-mongoengine.connect(db=ConfigMongoTest.database,
-                    host=ConfigMongoTest.host,
-                    port=ConfigMongoTest.port)
-log.info('连接Mongo开发测试环境[eve_test数据库]成功!')
+mongoengine.connect(db=ConfigMongo.database,
+                    host=ConfigMongo.host,
+                    port=ConfigMongo.port)
+log.info('连接Mongo开发测试环境[eve数据库]成功!')
+db.clear_intent_question()
 
 
 def test_sensitive():
@@ -66,71 +68,57 @@ def test_slot_recognizer():
         assert(ret == {})
 
 
+def test_nonsense():
+    #  TODO:  <03-05-18, yourname> #
+    pass
+
+
 def test_integration_train():
     service = NLUService()
     domain = Domain.objects.get(name="C")
     service.train(str(domain.pk), ("logistic", "0.1"))
+    label_data = cms_rpc.get_tree_label_data(str(domain.pk))
+    db.assert_intent_question(str(domain.pk), label_data)
+
+
+def test_question_generation():
+    #  TODO:  move to S-EVECMS
+    domain = Domain.objects.get(name="C")
     label_data = cms_rpc.get_tree_label_data(str(domain.pk))
     questions = zip(*label_data)[2]
     assert(u'周黑鸭' in questions)
     assert(u'鸭鸭' in questions)
     assert(u'鸭鸭' in questions)
     assert(u'你叫什么呢？' in questions)
-    assert(u'鸭鸭怎么走？' in questions)
-    db.assert_intent_question(str(domain.pk), label_data)
-    #  TODO: check fuzzy train result #
+    assert(u'鸭鸭怎么走' in questions)
 
 
-def atest_predict():
+mock_label_data = set([("treenode_id", "intent", "question"), ('tr', 'lb', 'q')])
+
+
+def atest_train():
     service = NLUService()
-    domain = Domain.objects.get(name="C")
-    robot = NLUService.robots[str(domain.pk)]
-    slot_names = [slot.name for slot in Slot.objects()]
-    robot._get_sub_slots = mock.Mock(return_value=slot_names)
+    domain_id = "C"
+    cms_rpc.get_tree_label_data = mock.Mock(return_value=mock_label_data)
+    service.train(domain_id, ("logistic", "0.1"))
+    db.assert_intent_question("C", mock_label_data)
 
-    name_query = {
-        'name.query': [
-            u'你叫什么呢？'
-        ]
-    }
-    for label, questions in name_query.iteritems():
-        for question in questions:
-            ret = service.predict(dm_robot_id, str(domain.pk), question)
-            assert(ret["intent"] == "name.query")
-            assert(ret["question"] == question)
-            assert(ret["confidence"] == 1.0)
-            assert(ret["slots"] == {})
 
-    location_query = {
-        'location.query': [
-            u'耐克怎么走？',
-            u'耐克在哪里？',
-        ]
-    }
-    for label, questions in location_query.iteritems():
-        for question in questions:
-            ret = service.predict(dm_robot_id, str(domain.pk), question)
-            assert(ret["intent"] == "location.query")
-            assert(ret["question"] == question)
-            assert(ret["confidence"] == 1.0)
-            assert(ret["slots"] == {u"location": u"耐克"})
+def atest_intent():
+    domain_id = "C"
+    intent = IntentRecognizer.get_intent_recognizer(domain_id)
+    mock_context = []
+    for data in mock_label_data:
+        tr, intent, question = q
+        assert(intent == intent.strict_classify(mock_context, question)[0])
+    mock_fuzzy_result = []
+    for data in mock_fuzyy_result:
+        tr, intent, question = q
+        assert(intent == intent.fuzzy_classify(mock_context, question)[0])
 
-    location_query2 = {
-        'location.query': [
-            u'周黑鸭怎么走？',
-            u'鸭鸭怎么走？',
-        ]
-    }
-    for label, questions in location_query2.iteritems():
-        for question in questions:
-            ret = service.predict(dm_robot_id, str(domain.pk), question)
-            assert(ret["intent"] == "location.query")
-            assert(ret["question"] == question)
-            assert(ret["confidence"] == 1.0)
-            assert(ret["slots"] == {u"location": u"周黑鸭"})
 
-    #  TODO: mock robot._intent.strict_classify, check fuzzy classify
-    # TODO: casual talk test
+
+# TODO: casual talk test
 
 if __name__ == '__main__':
     assert(False)
