@@ -41,15 +41,18 @@ class NLURobot(object):
         log.debug("get_tree_label_data")
         label_data = cms_rpc.get_tree_label_data(self.domain_id)
         log.debug("train with context")
+        std_questions = {}
         # save strict model
         for obj in IntentQuestion.objects(domain=self.domain_id):
             obj.delete()
         for td in label_data:
             IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
+            std_questions.setdefault(td[1], td[2])
         # save fuzzy model
         return {
             "code": 0,
-            "question_size": len(label_data)
+            "question_num": len(label_data),
+            "intent_questions": std_questions
         }
 
     def predict(self, dm_robot_id, question):
