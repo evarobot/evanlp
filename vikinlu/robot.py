@@ -48,7 +48,8 @@ class NLURobot(object):
             IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
         # save fuzzy model
         return {
-            "code": 0
+            "code": 0,
+            "question_size": len(label_data)
         }
 
     def predict(self, dm_robot_id, question):
