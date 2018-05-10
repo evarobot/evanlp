@@ -23,8 +23,8 @@ class IntentRecognizer(object):
         except IntentQuestion.DoesNotExist:
             return None, 1.0
         if len(objects) > 1:
-            for candicate in objects:
-                for unit in context["agents"]:
+            for unit in context["agents"]:
+                for candicate in objects:
                     tag, intent, id_ = tuple(unit)
                     if candicate.treenode == id_:
                         return candicate.label, 1.0
