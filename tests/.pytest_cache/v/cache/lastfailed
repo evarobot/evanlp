@@ -1,0 +1,5 @@
+{
+  "unit_test.py::test_integration_train": true, 
+  "unit_test.py::test_train": true, 
+  "unit_test.py::test_train2": true
+}

@@ -13,3 +13,13 @@ class IntentQuestion(db.Document):
     meta = {
         'indexes': [('domain', 'question')]
     }
+
+class IntentModel(db.Document):
+    domain = db.StringField(required=True)
+    algorithm = db.StringField(required=True)
+    model = db.StringField(required=True)
+    interval = db.StringField(required=True)
+
+    meta = {
+        'indexes': [('domain', 'model')]
+    }
