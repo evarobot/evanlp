@@ -18,7 +18,7 @@ class IntentQuestion(db.Document):
 class IntentModel(db.Document):
     domain = db.StringField(required=True)
     algorithm = db.StringField(required=True)
-    model = db.StringField(required=True)
+    model = db.BinaryField(required=False)
     interval = db.StringField(required=True)
 
     meta = {

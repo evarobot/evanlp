@@ -139,16 +139,17 @@ class NLURobot(object):
         x_test = count_vec.transform(x_test)
         clf = LogisticRegression()
         clf.fit(x_train, y_train)
-        import pdb
-        pdb.set_trace()
-        temp_fname = os.path.join(ConfigApps.temp_data_path, "{0}.txt".format(self.domain_id), "wb")
-        with open(temp_fname) as temp_file:
+        temp_fname = os.path.join(ConfigApps.temp_data_path, "{0}.txt".format(self.domain_id))
+        with open(temp_fname, "wb") as temp_file:
             pickle.dump(clf, temp_file)
         fr = open(temp_fname, 'rb')
         data = fr.read()
 
+        import pdb
+        pdb.set_trace()
         #interval = self.confidence_interval()
-        intent_model = IntentModel(domain=self.domain_id, algorithm=algorithm, model=data, interval="")
+        intent_model = IntentModel(domain=self.domain_id, algorithm=str(algorithm),
+                                   model=data, interval="")
         intent_model.save()
         multi_score = clf.score(x_test, y_test)
         return {
