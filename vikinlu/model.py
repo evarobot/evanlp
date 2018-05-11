@@ -14,6 +14,7 @@ class IntentQuestion(db.Document):
         'indexes': [('domain', 'question')]
     }
 
+
 class IntentModel(db.Document):
     domain = db.StringField(required=True)
     algorithm = db.StringField(required=True)

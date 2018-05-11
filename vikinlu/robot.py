@@ -7,15 +7,15 @@ from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.model import IntentQuestion, IntentModel
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_rpc, SYSTEM_DIR
+from vikinlu.config import ConfigApps
 
 
-
-
-import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression
+
+import os
 import pickle
 from sklearn.datasets.base import Bunch
 import numpy as np
@@ -122,47 +122,35 @@ class NLURobot(object):
             obj.delete()
         for td in label_data:
             IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
+
         # save fuzzy model
         intent_question = IntentQuestion.objects()
         x = map(lambda x:x.question, intent_question)
         y = map(lambda y:y.treenode, intent_question)
         z = map(lambda z:z.label, intent_question)
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-        root_path = os.getcwd()
-        stop_words_file = os.path.abspath(os.path.join(os.getcwd(), "../../VikiNLP/data/stopwords.txt"))
+        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
         count_vec = TfidfVectorizer(
             binary=False,
             decode_error='ignore',
             stop_words=stpwrdlst)
-        tfidfspace = Bunch(
-            target_names=z,
-            labels=y,
-            tdm=[],
-            vocabulary={}
-        )
         x_train = count_vec.fit_transform(x_train)
         x_test = count_vec.transform(x_test)
-        tfidfspace.tdm = x_train
-        tfidfspace.vocabulary = count_vec.vocabulary_
-        space_path = root_path + "/multi_trainspace1.txt"
-        self.writebunchobj(space_path, tfidfspace)
         clf = LogisticRegression()
         clf.fit(x_train, y_train)
-        fw = open(root_path + '/domain_multi_train.txt', 'wb')
-        pickle.dump(clf, fw)
-        fw.close()
-        fr = open(root_path + '/domain_multi_train.txt', 'rb')
-        data = fr.read()
-        print type(data)
         import pdb
         pdb.set_trace()
-        interval = self.confidence_interval()
-        intent_model = IntentModel(domain=self.domain_id, algorithm=algorithm, model=data, interval=interval)
+        temp_fname = os.path.join(ConfigApps.temp_data_path, "{0}.txt".format(self.domain_id), "wb")
+        with open(temp_fname) as temp_file:
+            pickle.dump(clf, temp_file)
+        fr = open(temp_fname, 'rb')
+        data = fr.read()
+
+        #interval = self.confidence_interval()
+        intent_model = IntentModel(domain=self.domain_id, algorithm=algorithm, model=data, interval="")
         intent_model.save()
         multi_score = clf.score(x_test, y_test)
-        print ("multi_score"*10)
-        print(multi_score)
         return {
             "code": 0
         }
