@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from vikinlu.model import IntentQuestion
+from vikinlu.model import IntentQuestion, IntentModel
+from vikinlu.util import SYSTEM_DIR
+from vikinlu.config import ConfigApps
 import os
 import jieba
 import pickle
@@ -26,9 +28,6 @@ class IntentRecognizer(object):
         except IntentQuestion.DoesNotExist:
             return None, 1.0
         if len(objects) > 1:
-            for k in objects:
-                print k.label
-            print("&"*30)
             for unit in context["agents"]:
                 for candicate in objects:
                     tag, intent, id_ = tuple(unit)
@@ -52,10 +51,9 @@ class IntentRecognizer(object):
         return bunch
 
     def fuzzy_classify(self, context, question):
-        root_path = os.getcwd()
-        space_path = root_path + "/multi_trainspace1.txt"
-        train_set = self.readbunchobj(space_path)
-        stop_words_file = os.path.abspath(os.path.join(os.getcwd(), "../../VikiNLP/data/stopwords.txt"))
+        feature_fname = os.path.join(ConfigApps.temp_data_path, "{0}_feature.txt".format(self._domain_id))
+        train_set = self.readbunchobj(feature_fname)
+        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
         count_vec = TfidfVectorizer(
             binary=False,
@@ -65,12 +63,11 @@ class IntentRecognizer(object):
         x_test = []
         x_test.append(" ".join(jieba.cut(question)))
         x_test = count_vec.fit_transform(x_test)
-        fr = open(root_path + '/domain_multi_train.txt', 'rb')
-        clf = pickle.load(fr)
+
+        model_fname = os.path.join(ConfigApps.temp_data_path, "{0}_model.txt".format(self._domain_id))
+        clf = self.readbunchobj(model_fname)
         predicted = clf.predict(x_test)  # 返回标签
         pre_proba = clf.predict_proba(x_test)  # 返回概率
-
-        fr.close()
 
         m = predicted[0]
         p = max(pre_proba[0])

@@ -81,12 +81,11 @@ class NLURobot(object):
             else:
                 c[y[i]].append(x[i])
 
-        print(c)
-
         for e in c:
             correct_p = []
             for q in c[e]:
                 p = self._intent.fuzzy_classify(1, q)
+                print q, "--------------", p[0], p[1]
                 if (p[0] == e):
                     correct_p.append(p[1])
             c[e] = correct_p
@@ -105,15 +104,11 @@ class NLURobot(object):
                 global_pmaxmin[e] = [max(c[e]), min(c[e])]
                 global_interval[e] = interval
 
-        print(global_pmaxmin)
-        print(global_interval)
         return global_interval
 
     def train(self, algorithm):
         log.debug("get_tree_label_data")
         label_data = cms_rpc.get_tree_label_data(self.domain_id)
-        for k in label_data:
-            print k[2]
         # import pdb
         # pdb.set_trace()
         log.debug("train with context")
@@ -124,34 +119,44 @@ class NLURobot(object):
             IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
 
         # save fuzzy model
-        intent_question = IntentQuestion.objects()
+        intent_question = IntentQuestion.objects(domain=self.domain_id)
         x = map(lambda x:x.question, intent_question)
-        y = map(lambda y:y.treenode, intent_question)
+        y = map(lambda y:y.label, intent_question)
         z = map(lambda z:z.label, intent_question)
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
         stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
+
+
+        # tf-idf
         count_vec = TfidfVectorizer(
             binary=False,
             decode_error='ignore',
             stop_words=stpwrdlst)
+        tfidfspace = Bunch(
+            target_names=z,
+            labels=y,
+            tdm=[],
+            vocabulary={}
+        )
         x_train = count_vec.fit_transform(x_train)
         x_test = count_vec.transform(x_test)
+        tfidfspace.tdm = x_train
+        tfidfspace.vocabulary = count_vec.vocabulary_
+        feature_fname = os.path.join(ConfigApps.temp_data_path, "{0}_feature.txt".format(self.domain_id))
+        with open(feature_fname, "wb") as f:
+            pickle.dump(tfidfspace, f)
+
+        # model
         clf = LogisticRegression()
         clf.fit(x_train, y_train)
-        temp_fname = os.path.join(ConfigApps.temp_data_path, "{0}.txt".format(self.domain_id))
-        with open(temp_fname, "wb") as temp_file:
-            pickle.dump(clf, temp_file)
-        fr = open(temp_fname, 'rb')
-        data = fr.read()
-
-        import pdb
-        pdb.set_trace()
-        #interval = self.confidence_interval()
-        intent_model = IntentModel(domain=self.domain_id, algorithm=str(algorithm),
-                                   model=data, interval="")
-        intent_model.save()
         multi_score = clf.score(x_test, y_test)
+
+        model_fname = os.path.join(ConfigApps.temp_data_path, "{0}_model.txt".format(self.domain_id))
+        with open(model_fname, "wb") as f:
+            pickle.dump(clf, f)
+
+        interval = self.confidence_interval()
         return {
             "code": 0
         }
