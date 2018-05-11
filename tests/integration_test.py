@@ -81,7 +81,7 @@ def test_integration_train():
     db.assert_intent_question(str(domain.pk), label_data)
 
 
-def test_question_generation():
+def atest_question_generation():
     #  TODO:  move to S-EVECMS
     domain = Domain.objects.get(name="C")
     label_data = cms_rpc.get_tree_label_data(str(domain.pk))

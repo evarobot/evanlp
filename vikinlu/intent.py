@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import logging
 from vikinlu.model import IntentQuestion
+from evecms.models import *
+log = logging.getLogger(__name__)
 
 
 class IntentRecognizer(object):
@@ -22,10 +25,16 @@ class IntentRecognizer(object):
             objects = IntentQuestion.objects(domain=self._domain_id, question=question)
         except IntentQuestion.DoesNotExist:
             return None, 1.0
+        log.debug("candicate intents: {0}".format([obj.label for obj in objects]))
+        log.debug("context intents: {0}".format([obj[1] for obj in context["agents"]]))
         if len(objects) > 1:
             for unit in context["agents"]:
                 for candicate in objects:
                     tag, intent, id_ = tuple(unit)
+                    if candicate.label == intent and question == "保湿":
+                        log.info("context_treenode%s, train_treenode: %s" % (id_, candicate.treenode))
+                        node = TreeNode.objects.with_id(id_)
+                        log.info(node.tag)
                     if candicate.treenode == id_:
                         return candicate.label, 1.0
         elif len(objects) == 1:
