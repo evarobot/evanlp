@@ -1,0 +1,10 @@
+[
+  "unit_test.py::test_sensitive", 
+  "unit_test.py::test_slot_recognizer", 
+  "unit_test.py::test_nonsense", 
+  "unit_test.py::test_integration_train", 
+  "unit_test.py::test_question_generation", 
+  "unit_test.py::test_train", 
+  "unit_test.py::test_intent", 
+  "unit_test.py::test_train2"
+]

@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import logging
 from vikinlu.model import IntentQuestion
-from evecms.models import *
+from vikinlu.util import SYSTEM_DIR
+from vikinlu.config import ConfigApps
+import os
+import jieba
+import pickle
+from sklearn.feature_extraction.text import TfidfVectorizer
+import logging
 log = logging.getLogger(__name__)
 
 
@@ -33,16 +38,48 @@ class IntentRecognizer(object):
                     tag, intent, id_ = tuple(unit)
                     if candicate.label == intent and question == "保湿":
                         log.info("context_treenode%s, train_treenode: %s" % (id_, candicate.treenode))
-                        node = TreeNode.objects.with_id(id_)
-                        log.info(node.tag)
                     if candicate.treenode == id_:
                         return candicate.label, 1.0
         elif len(objects) == 1:
             return objects[0].label, 1.0
         return None, 1.0
 
+    def readfile(self, path):
+        # fp = open(path, "r", encoding='utf-8')
+        fp = open(path, "r")
+        content = fp.read()
+        fp.close()
+        return content
+
+    def readbunchobj(self, path):
+        file_obj = open(path, "rb")
+        bunch = pickle.load(file_obj)
+        file_obj.close()
+        return bunch
+
     def fuzzy_classify(self, context, question):
-        return None, 1.0
+        feature_fname = os.path.join(ConfigApps.temp_data_path, "{0}_feature.txt".format(self._domain_id))
+        train_set = self.readbunchobj(feature_fname)
+        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
+        stpwrdlst = self.readfile(stop_words_file).splitlines()
+        count_vec = TfidfVectorizer(
+            binary=False,
+            decode_error='ignore',
+            stop_words=stpwrdlst,
+            vocabulary=train_set.vocabulary)
+        x_test = []
+        x_test.append(" ".join(jieba.cut(question)))
+        x_test = count_vec.fit_transform(x_test)
+
+        model_fname = os.path.join(ConfigApps.temp_data_path, "{0}_model.txt".format(self._domain_id))
+        clf = self.readbunchobj(model_fname)
+        predicted = clf.predict(x_test)  # 返回标签
+        pre_proba = clf.predict_proba(x_test)  # 返回概率
+
+        m = predicted[0]
+        p = max(pre_proba[0])
+
+        return (m, p)
 
     def is_casual_talk(self, question):
         return False

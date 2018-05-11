@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from vikinlu.model import IntentQuestion
-
+from evecms.models import (
+    Domain,
+    Slot
+)
+import pprint
 
 def clear_intent_question():
     IntentQuestion.drop_collection()

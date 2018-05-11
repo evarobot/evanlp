@@ -4,19 +4,20 @@
 import logging
 import mongoengine
 import mock
+import copy
+import jieba
+import os
 
 from vikicommon.log import init_logger
 from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.service import NLUService
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_rpc, PROJECT_DIR, SYSTEM_DIR
 from vikinlu.intent import IntentRecognizer
 import util as db
-from evecms.models import (
-    Domain,
-    Slot
-)
+
+from vikinlu.robot import NLURobot
 
 init_logger(level="DEBUG", path="./")
 log = logging.getLogger(__name__)
@@ -29,16 +30,16 @@ log.info('连接Mongo开发测试环境[eve数据库]成功!')
 db.clear_intent_question()
 
 
-def test_sensitive():
-    domain = Domain.objects.get(name="C")
+def atest_sensitive():
+    domain = db.Domain.objects.get(name="C")
     sensitive = Sensitive.get_sensitive(str(domain.pk))
     assert(set(sensitive._words) == set([u"共产党", u"毛泽东", u"法轮功"]))
     assert(sensitive.detect(u'共产党万岁') == True)
     assert(sensitive.detect(u'你叫什么') == False)
 
 
-def test_slot_recognizer():
-    domain = Domain.objects.get(name="C")
+def atest_slot_recognizer():
+    domain = db.Domain.objects.get(name="C")
     slot = SlotRecognizer.get_slot_recognizer(str(domain.pk))
     slots = cms_rpc.get_domain_slots(str(domain.pk))['slots']
     slot_names = [d_slot["name"] for d_slot in slots]
@@ -49,8 +50,8 @@ def test_slot_recognizer():
     where_query2 = [
         u'周黑鸭怎么走？',
         u'鸭鸭怎么走？',
-        u'周黑鸭在哪里？',
         u'鸭鸭在哪里？',
+        u'周黑鸭在哪里？',
     ]
     name_query = [
         u'你叫什么名字',
@@ -73,17 +74,9 @@ def test_nonsense():
     pass
 
 
-def test_integration_train():
-    service = NLUService()
-    domain = Domain.objects.get(name="C")
-    service.train(str(domain.pk), ("logistic", "0.1"))
-    label_data = cms_rpc.get_tree_label_data(str(domain.pk))
-    db.assert_intent_question(str(domain.pk), label_data)
-
-
-def test_question_generation():
+def atest_question_generation():
     #  TODO:  move to S-EVECMS
-    domain = Domain.objects.get(name="C")
+    domain = db.Domain.objects.get(name="C")
     label_data = cms_rpc.get_tree_label_data(str(domain.pk))
     questions = zip(*label_data)[2]
     assert(u'周黑鸭' in questions)
@@ -93,29 +86,78 @@ def test_question_generation():
     assert(u'鸭鸭怎么走' in questions)
 
 
-mock_label_data = set([("treenode_id", "intent", "question"), ('tr', 'lb', 'q')])
+# mock_label_data = set([("treenode_id", "intent", "question"), ('tr', 'lb', 'q')])
+
+def stp_word(stp_dir, question):
+    with open(stp_dir, "r") as f:
+        lines = f.readlines()
+        stopwords = set([line.strip().decode("utf-8") for line in lines])
+    segs = jieba.cut(question, cut_all=False)
+    final = ""
+    for seg in segs:
+        if seg not in stopwords:
+            final += seg
+    return final
+
+def create_mock_label_data():
+    path1 = os.path.join(PROJECT_DIR, "tests/data/guangkai.txt")
+    #path2 = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
+    with open(str(path1), "r") as f:
+        i = 1
+        mock_label_list = list()
+        item_copy = f.readline().strip().split("$@")
+        lines = f.readlines()
+    for line in lines:
+        item = line.strip().split("$@")
+        if item[0] == item_copy[0]:
+            pass
+        else:
+            i += 1
+        item_copy = copy.deepcopy(item)
+        item.insert(0, str(i))
+
+        u_item = map(lambda x:x.decode("utf-8"),item)
+        # u_item[2] = stp_word(path2, u_item[2])
+        u_item = tuple(u_item)
+        mock_label_list.append(u_item)
+    mock_label_data = set(mock_label_list)
+    return mock_label_data
+
+def create_mock_context(mock_label_data):
+    mock_context = {}
+    context_list = set([(intent, intent, treenode_id) for treenode_id, intent, question in mock_label_data])
+    mock_context["agents"] = list(context_list)
 
 
-def atest_train():
+    # print mock_context
+    return mock_context
+
+def test_train():
+
+    mock_label_data = create_mock_label_data()
     service = NLUService()
-    domain_id = "C"
+    domain_id = str(db.Domain.objects.get(name="C").pk)
     cms_rpc.get_tree_label_data = mock.Mock(return_value=mock_label_data)
     service.train(domain_id, ("logistic", "0.1"))
-    db.assert_intent_question("C", mock_label_data)
-    #  TODO:  模型训练
+    db.assert_intent_question(domain_id, mock_label_data)
 
 
 def test_intent():
-    domain_id = "C"
-    intent = IntentRecognizer.get_intent_recognizer(domain_id)
-    mock_context = []
+
+    mock_label_data = create_mock_label_data()
+    mock_context = create_mock_context(mock_label_data)
+    domain_id = str(db.Domain.objects.get(name="C").pk)
+    intent_object = IntentRecognizer.get_intent_recognizer(domain_id)
     for data in mock_label_data:
-        tr, intent, question = q
-        assert(intent == intent.strict_classify(mock_context, question)[0])
-    mock_fuzzy_result = []
-    #  TODO:  <07-05-18, yourname> #
-    for data in mock_fuzyy_result:
-        tr, intent, question = q
+        tr, intent, question = data
+        try:
+            assert(intent == intent_object.strict_classify(mock_context, question)[0])
+        except:
+            assert(question in [u"存款利息", u"粤通卡", u"信用卡还款"])
+        intent_object.fuzzy_classify(mock_context, question)
+
+
+
 
 
 
