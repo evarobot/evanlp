@@ -35,14 +35,28 @@ class IntentRecognizer(object):
         value_words = set(value_words)
         for word in value_words:
             jieba.add_word(word, freq=10000)
+
+        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
+        with open(stop_words_file, "r") as f:
+            lines = f.readlines()
+            self.stopwords = set([line.strip().decode("utf-8") for line in lines])
         return intent
+
+    def strip_stopwords(self, question):
+        segs = jieba.cut(question, cut_all=False)
+        left_words = []
+        for seg in segs:
+            if seg not in self.stopwords:
+                left_words.append(seg)
+        return " ".join(left_words)
 
     def _load_model(self):
         pass
 
     def strict_classify(self, context, question):
+        normalized_question = self.strip_stopwords(question)
         try:
-            objects = IntentQuestion.objects(domain=self._domain_id, question=question)
+            objects = IntentQuestion.objects(domain=self._domain_id, question=normalized_question)
         except IntentQuestion.DoesNotExist:
             return None, 1.0
         log.debug("candicate intents: {0}".format([obj.label for obj in objects]))

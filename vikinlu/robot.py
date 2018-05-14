@@ -112,14 +112,15 @@ class NLURobot(object):
         # save strict model
         IntentQuestion.objects(domain=self.domain_id).delete()
         for td in label_data:
-            IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
+            normalized_question = self._intent.strip_stopwords(td[2])
+            IntentQuestion(domain=self.domain_id, treenode=td[0],
+                           label=td[1], question=normalized_question).save()
             std_questions.setdefault(td[1], td[2])
         # save fuzzy model
-        intent_question = IntentQuestion.objects(domain=self.domain_id)
-        x = map(lambda x:x.question, intent_question)
-        y = map(lambda y:y.label, intent_question)
-        z = map(lambda z:z.label, intent_question)
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+        x = zip(*label_data)[2]
+        y = zip(*label_data)[1]
+        z = zip(*label_data)[2]
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1)
         stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
         # tf-idf
@@ -150,7 +151,7 @@ class NLURobot(object):
         with open(model_fname, "wb") as f:
             pickle.dump(clf, f)
 
-        interval = self.confidence_interval()
+        #interval = self.confidence_interval()
         log.info("*"  * 30)
         log.info(multi_score)
         log.info("*"  * 30)
