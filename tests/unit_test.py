@@ -154,7 +154,7 @@ def test_intent():
             assert(intent == intent_object.strict_classify(mock_context, question)[0])
         except:
             assert(question in [u"存款利息", u"粤通卡", u"信用卡还款"])
-        intent_object.fuzzy_classify(mock_context, question)
+        #intent_object.fuzzy_classify(mock_context, question)
 
 
 

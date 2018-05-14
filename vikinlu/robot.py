@@ -110,8 +110,7 @@ class NLURobot(object):
         log.debug("train with context")
         std_questions = {}
         # save strict model
-        for obj in IntentQuestion.objects(domain=self.domain_id):
-            obj.delete()
+        IntentQuestion.objects(domain=self.domain_id).delete()
         for td in label_data:
             IntentQuestion(domain=self.domain_id, treenode=td[0], label=td[1], question=td[2]).save()
             std_questions.setdefault(td[1], td[2])
