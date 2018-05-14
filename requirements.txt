@@ -1,1 +1,5 @@
 nameko==2.7.0
+numpy
+scipy
+jieba
+sklearn

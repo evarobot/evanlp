@@ -92,7 +92,7 @@ class _ConfigApps(object):
     @property
     def cache_data_path(self):
         hst = os.environ.get("CACHE_DATA_PATH")
-        return hst if hst is not None else self._temp_data_path
+        return hst if hst is not None else self._cache_data_path
 
     @property
     def model_data_path(self):
