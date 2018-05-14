@@ -1,4 +1,5 @@
 {
+  "unit_test.py::test_intent": true, 
   "unit_test.py::test_question_generation": true, 
   "unit_test.py::test_slot_recognizer": true, 
   "unit_test.py::test_train2": true

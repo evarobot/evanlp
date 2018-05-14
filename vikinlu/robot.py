@@ -85,14 +85,10 @@ class NLURobot(object):
             correct_p = []
             for q in c[e]:
                 p = self._intent.fuzzy_classify(1, q)
-                print q, "--------------", p[0], p[1]
                 if (p[0] == e):
                     correct_p.append(p[1])
             c[e] = correct_p
 
-        for e in c:
-            if (len(c[e]) != 0):
-                print(e, len(c[e]), c[e])
 
         for e in c:
             n = len(c[e])
@@ -127,8 +123,6 @@ class NLURobot(object):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
         stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
-
-
         # tf-idf
         count_vec = TfidfVectorizer(
             binary=False,
@@ -158,6 +152,9 @@ class NLURobot(object):
             pickle.dump(clf, f)
 
         interval = self.confidence_interval()
+        log.info("*"  * 30)
+        log.info(multi_score)
+        log.info("*"  * 30)
         return {
             "code": 0,
             "question_num": len(label_data),

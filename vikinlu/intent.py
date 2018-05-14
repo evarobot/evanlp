@@ -3,6 +3,7 @@
 from vikinlu.model import IntentQuestion
 from vikinlu.util import SYSTEM_DIR
 from vikinlu.config import ConfigApps
+from vikinlu.util import cms_rpc
 import os
 import jieba
 import pickle
@@ -20,6 +21,18 @@ class IntentRecognizer(object):
     def get_intent_recognizer(self, domain_id):
         intent = IntentRecognizer(domain_id)
         intent._load_model()
+        value_words = []
+        ret = cms_rpc.get_domain_values(domain_id)
+        if ret['code'] != 0:
+            assert(False)
+        for value in ret["values"]:
+            if value['name'].startswith('@'):
+                continue
+            value_words.append(value['name'])
+            value_words += value['words']
+        value_words = set(value_words)
+        for word in value_words:
+            jieba.add_word(word, freq=10000)
         return intent
 
     def _load_model(self):
@@ -36,8 +49,6 @@ class IntentRecognizer(object):
             for unit in context["agents"]:
                 for candicate in objects:
                     tag, intent, id_ = tuple(unit)
-                    if candicate.label == intent and question == "保湿":
-                        log.info("context_treenode%s, train_treenode: %s" % (id_, candicate.treenode))
                     if candicate.treenode == id_:
                         return candicate.label, 1.0
         elif len(objects) == 1:
