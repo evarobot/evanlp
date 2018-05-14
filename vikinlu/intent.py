@@ -10,6 +10,8 @@ import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 import logging
 log = logging.getLogger(__name__)
+jieba.dt.tmp_dir = ConfigApps.temp_data_path
+jieba.initialize()
 
 
 class IntentRecognizer(object):
