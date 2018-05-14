@@ -138,7 +138,7 @@ class NLURobot(object):
         x_test = count_vec.transform(x_test)
         tfidfspace.tdm = x_train
         tfidfspace.vocabulary = count_vec.vocabulary_
-        feature_fname = os.path.join(ConfigApps.temp_data_path, "{0}_feature.txt".format(self.domain_id))
+        feature_fname = os.path.join(ConfigApps.model_data_path, "{0}_feature.txt".format(self.domain_id))
         with open(feature_fname, "wb") as f:
             pickle.dump(tfidfspace, f)
 
@@ -147,7 +147,7 @@ class NLURobot(object):
         clf.fit(x_train, y_train)
         multi_score = clf.score(x_test, y_test)
 
-        model_fname = os.path.join(ConfigApps.temp_data_path, "{0}_model.txt".format(self.domain_id))
+        model_fname = os.path.join(ConfigApps.model_data_path, "{0}_model.txt".format(self.domain_id))
         with open(model_fname, "wb") as f:
             pickle.dump(clf, f)
 

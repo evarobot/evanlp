@@ -71,7 +71,7 @@ class IntentRecognizer(object):
         return bunch
 
     def fuzzy_classify(self, context, question):
-        feature_fname = os.path.join(ConfigApps.temp_data_path, "{0}_feature.txt".format(self._domain_id))
+        feature_fname = os.path.join(ConfigApps.model_data_path, "{0}_feature.txt".format(self._domain_id))
         train_set = self.readbunchobj(feature_fname)
         stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
         stpwrdlst = self.readfile(stop_words_file).splitlines()
@@ -84,7 +84,7 @@ class IntentRecognizer(object):
         x_test.append(" ".join(jieba.cut(question)))
         x_test = count_vec.fit_transform(x_test)
 
-        model_fname = os.path.join(ConfigApps.temp_data_path, "{0}_model.txt".format(self._domain_id))
+        model_fname = os.path.join(ConfigApps.model_data_path, "{0}_model.txt".format(self._domain_id))
         clf = self.readbunchobj(model_fname)
         predicted = clf.predict(x_test)  # 返回标签
         pre_proba = clf.predict_proba(x_test)  # 返回概率

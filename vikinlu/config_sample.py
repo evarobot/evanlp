@@ -86,7 +86,18 @@ class _ConfigMongo:
 
 
 class _ConfigApps(object):
-    temp_data_path = "/temp"
+    _temp_data_path = "/src/data/temp"
+    _model_data_path = "/src/data/models"
+
+    @property
+    def temp_data_path(self):
+        hst = os.environ.get("TEMP_DATA_PATH")
+        return hst if hst is not None else self._temp_data_path
+
+    @property
+    def model_data_path(self):
+        hst = os.environ.get("MODEL_DATA_PATH")
+        return hst if hst is not None else self._model_data_path
 
 
 class _ConfigNeo4j:
