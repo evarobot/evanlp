@@ -86,12 +86,12 @@ class _ConfigMongo:
 
 
 class _ConfigApps(object):
-    _temp_data_path = "/src/data/temp"
+    _cache_data_path = "/src/data/caches"
     _model_data_path = "/src/data/models"
 
     @property
-    def temp_data_path(self):
-        hst = os.environ.get("TEMP_DATA_PATH")
+    def cache_data_path(self):
+        hst = os.environ.get("CACHE_DATA_PATH")
         return hst if hst is not None else self._temp_data_path
 
     @property
