@@ -168,11 +168,13 @@ class NLURobot(object):
         std_questions = {}
         # save strict model
         IntentQuestion.objects(domain=self.domain_id).delete()
+        db_questions = []
         for td in label_data:
             normalized_question = self._intent.strip_stopwords(td[2])
-            IntentQuestion(domain=self.domain_id, treenode=td[0],
-                           label=td[1], question=normalized_question).save()
+            db_questions.append(IntentQuestion(domain=self.domain_id, treenode=td[0],
+                           label=td[1], question=normalized_question))
             std_questions.setdefault(td[1], td[2])
+        IntentQuestion.objects.insert(db_questions)
         # save fuzzy model
         x = zip(*label_data)[2]
         y = zip(*label_data)[1]
@@ -218,7 +220,7 @@ class NLURobot(object):
             return "casual_talk", 1.0
         if intent is None:
             intent, confidence = self._intent.fuzzy_classify(context, question)
-            log.info("FUZZY CLASSIFY to {0}".format(intent))
+            log.info("FUZZY CLASSIFY to {0} confidence {1}".format(intent, confidence))
         return intent, confidence
 
 

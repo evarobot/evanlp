@@ -33,7 +33,6 @@ class SlotRecognizer(object):
     def recognize(self, question, slot_names):
         slots = {}
         for slot_name in slot_names:
-            print slot_name
             d_slot = self._slots[slot_name]
             for value_name, value_pattern in d_slot["values"].iteritems():
                 if value_name.startswith('@'):
