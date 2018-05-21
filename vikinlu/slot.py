@@ -13,10 +13,14 @@ class SlotRecognizer(object):
 
     def init_slots(self, domain_id):
         ret = cms_rpc.get_domain_slots(domain_id)
+        if ret['code'] != 0:
+            raise
         for slot in ret["slots"]:
             d_values = {}
             for value_id in slot["values"].keys():
                 ret = cms_rpc.get_value(value_id)
+                if ret['code'] != 0:
+                    raise
                 ret["words"].append(ret["name"])
                 d_values[ret["name"]] = ret["words"]
             self._slots[slot["name"]] = {

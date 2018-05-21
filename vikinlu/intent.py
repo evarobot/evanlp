@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from vikinlu.util import cms_rpc
-from vikinlu.classifier import QuestionClassifier
+from vikinlu.classifier import QuestionSearch, FuzzyClassifier, BizChatClassifier
 import logging
 import jieba
 log = logging.getLogger(__name__)
@@ -14,9 +14,9 @@ class IntentRecognizer(object):
     def __init__(self, domain_id):
         self._domain_id = domain_id
         self._feature = None
-        self._strict_classifier = QuestionClassifier.get_classifier(domain_id, "mongodb")
-        self._biz_classifier = QuestionClassifier.get_classifier(domain_id, "logistic")
-        self._biz_chat_classifier = QuestionClassifier.get_classifier(domain_id, "biz_chat")
+        self._strict_classifier = QuestionSearch(domain_id)
+        self._biz_classifier = FuzzyClassifier(domain_id, "logistic")
+        self._biz_chat_classifier = BizChatClassifier(domain_id, "logistic")
 
     @classmethod
     def get_intent_recognizer(self, domain_id):

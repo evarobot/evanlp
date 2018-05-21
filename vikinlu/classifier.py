@@ -1,24 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import logging
 import os
 import jieba
-import pickle
 from collections import namedtuple
-from sklearn.feature_extraction.text import TfidfVectorizer
+from vikinlp.nlp.classifier.question_classifier import QuestionClassfier
 from vikinlu.util import SYSTEM_DIR
-from vikinlu.config import ConfigApps
-from sklearn.cross_validation import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.datasets.base import Bunch
-from random import shuffle
-import logging
+from vikinlu.model import IntentQuestion, IntentTreeNode
+
 log = logging.getLogger(__name__)
-jieba.dt.tmp_dir = ConfigApps.cache_data_path
-jieba.initialize()
 
 LabelData = namedtuple('LabelData', 'label, question, treenode')
-
-test_size = 0.2
 
 
 def readfile(path):
@@ -42,31 +34,8 @@ def strip_stopwords(question):
     return " ".join(left_words)
 
 
-class QuestionClassifier(object):
-    """"""
-    def __init__(self, identifier):
-        self.identifier = identifier
-
-    def train(self, question):
-        raise NotImplementedError
-
-    def predict(self, question):
-        raise NotImplementedError
-
-    @classmethod
-    def get_classifier(cls, domain_id, identifier):
-        if identifier == "mongodb":
-            return QuestionSearch(domain_id, identifier)
-        elif identifier == "logistic":
-            return QuestionLogisticRegression(domain_id, identifier)
-        elif identifier == "biz_chat":
-            return BizChatClassifier(domain_id, identifier)
-
-
-from vikinlu.model import IntentQuestion, IntentTreeNode
-class QuestionSearch(QuestionClassifier):
-    def __init__(self, domain_id, identifier):
-        super(QuestionSearch, self).__init__(identifier)
+class QuestionSearch(object):
+    def __init__(self, domain_id):
         self.domain_id = domain_id
 
     def predict(self, question):
@@ -84,7 +53,7 @@ class QuestionSearch(QuestionClassifier):
         for td in label_data:
             normalized_question = strip_stopwords(td.question)
             db_questions.append(IntentQuestion(domain=self.domain_id, treenode=td.treenode,
-                           label=td.label, question=normalized_question))
+                                label=td.label, question=normalized_question))
             label_treenode.add((td.label, td.treenode))
         for label, treenode in label_treenode:
             db_label_treenodes.append(IntentTreeNode(domain=self.domain_id,
@@ -95,95 +64,27 @@ class QuestionSearch(QuestionClassifier):
         IntentTreeNode(domain=self.domain_id, treenode="", label="casual_talk").save()
 
 
-class QuestionLogisticRegression(QuestionClassifier):
-    def __init__(self, domain_id, identifier):
-        super(QuestionLogisticRegression, self).__init__(identifier)
-        self._model = None
-        self.domain_id = domain_id
+class FuzzyClassifier(object):
+    def __init__(self, domain_id, algorithm):
+        self._domain_id = domain_id
+        self._classifier = QuestionClassfier.get_classifier(domain_id + "_biz", algorithm)
 
     def train(self, label_data):
         # save fuzzy model
-        shuffle(label_data)
-        x = zip(*label_data)[1]
-        y = zip(*label_data)[0]
-        z = zip(*label_data)[1]
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
-        stpwrdlst = readfile(stop_words_file).splitlines()
-        # tf-idf
-        count_vec = TfidfVectorizer(
-            binary=False,
-            decode_error='ignore',
-            stop_words=stpwrdlst)
-        tfidfspace = Bunch(
-            target_names=z,
-            labels=y,
-            tdm=[],
-            vocabulary={}
-        )
-        x_train = count_vec.fit_transform(x_train)
-        x_test = count_vec.transform(x_test)
-        tfidfspace.tdm = x_train
-        tfidfspace.vocabulary = count_vec.vocabulary_
-        feature_fname = os.path.join(ConfigApps.model_data_path,
-                                     "{0}_{1}_feature.txt".format(self.domain_id, self.identifier))
-        with open(feature_fname, "wb") as f:
-            pickle.dump(tfidfspace, f)
-
-        # model
-        clf = LogisticRegression()
-        clf.fit(x_train, y_train)
-        model_fname = os.path.join(ConfigApps.model_data_path,
-                                   "{0}_{1}_model.txt".format(self.domain_id, self.identifier))
-        with open(model_fname, "wb") as f:
-            pickle.dump(clf, f)
-        multi_score = clf.score(x_test, y_test)
-        log.info("*" * 30)
-        log.info("Model {0} Precise: {1}".format(self.identifier, multi_score))
-        log.info("*" * 30)
+        return self._classifier.train(label_data)
 
     def predict(self, question):
-        if self._model is None:
-            try:
-                self._load_model()
-            except Exception as e:
-                raise e
-                log.error("还未训练")
-        x_test = []
-        x_test.append(" ".join(jieba.cut(question)))
-        x_test = self.features.fit_transform(x_test)
-
-        predicted = self._model.predict(x_test)  # 返回标签
-        objects = IntentTreeNode.objects(domain=self.domain_id, label=predicted[0])
-        pre_proba = self._model.predict_proba(x_test)  # 返回概率
-        confidence = max(pre_proba[0])
+        label, confidence = self._classifier.predict(question)
+        objects = IntentTreeNode.objects(domain=self._domain_id, label=label)
         return objects, confidence
 
-    def _load_model(self):
-        model_fname = os.path.join(ConfigApps.model_data_path,
-                                   "{0}_{1}_model.txt".format(self.domain_id, self.identifier))
-        self._model = self.readbunchobj(model_fname)
-        feature_fname = os.path.join(ConfigApps.model_data_path,
-                                     "{0}_{1}_feature.txt".format(self.domain_id, self.identifier))
-        feature_set = self.readbunchobj(feature_fname)
-        self.features = TfidfVectorizer(
-            binary=False,
-            decode_error='ignore',
-            stop_words=stop_words,
-            vocabulary=feature_set.vocabulary)
 
-    def readbunchobj(self, path):
-        file_obj = open(path, "rb")
-        bunch = pickle.load(file_obj)
-        file_obj.close()
-        return bunch
-
-
-class BizChatClassifier(QuestionLogisticRegression):
+class BizChatClassifier(FuzzyClassifier):
     chat_label_data = []
 
-    def __init__(self, domain_id, identifier="biz_chat"):
-        super(BizChatClassifier, self).__init__(domain_id, identifier)
+    def __init__(self, domain_id, algorithm):
+        super(BizChatClassifier, self).__init__(domain_id, algorithm)
+        self._classifier = QuestionClassfier.get_classifier(domain_id + "_bizchat", algorithm)
 
     def train(self, label_data):
         biz_chat_data = []
