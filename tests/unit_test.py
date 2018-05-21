@@ -6,20 +6,23 @@ import mongoengine
 import mock
 import copy
 import jieba
+from collections import namedtuple
 import os
 
 from vikicommon.log import init_logger
-from vikinlu.config import ConfigMongo
+from vikinlu.config import ConfigMongo, ConfigLog
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
-from vikinlu.service import NLUService
+from vikinlu.robot import NLURobot
 from vikinlu.util import cms_rpc, PROJECT_DIR, SYSTEM_DIR
 from vikinlu.intent import IntentRecognizer
-import util as db
+from vikinlu import db
+import helper
 
 from vikinlu.robot import NLURobot
 
-init_logger(level="DEBUG", path="./")
+LabelData = namedtuple("LabelData", "label, question, treenode")
+init_logger(level="DEBUG", path=ConfigLog.log_path)
 log = logging.getLogger(__name__)
 dm_robot_id = "12345"
 
@@ -27,7 +30,6 @@ mongoengine.connect(db=ConfigMongo.database,
                     host=ConfigMongo.host,
                     port=ConfigMongo.port)
 log.info('连接Mongo开发测试环境[eve数据库]成功!')
-db.clear_intent_question("C")
 
 def mock_get_value(value_id):
     data = {
@@ -46,10 +48,11 @@ def mock_get_value(value_id):
 
 
 def _create_mock_label_data():
+    from evecms.services.service import LabelData
     path1 = os.path.join(PROJECT_DIR, "tests/data/guangkai.txt")
+    mock_label_list = list()
     with open(str(path1), "r") as f:
         i = 1
-        mock_label_list = list()
         item_copy = f.readline().strip().split("$@")
         lines = f.readlines()
     for line in lines:
@@ -62,9 +65,11 @@ def _create_mock_label_data():
         item.insert(0, str(i))
         u_item = map(lambda x:x.decode("utf-8"),item)
         u_item = tuple(u_item)
-        mock_label_list.append(u_item)
-    mock_label_data = set(mock_label_list)
-    return mock_label_data
+        mock_label_list.append(LabelData(treenode=u_item[0],
+                                         label=u_item[1],
+                                         question=u_item[2]))
+    return mock_label_list
+
 mock_label_data = _create_mock_label_data()
 
 cms_rpc.get_tree_label_data = mock.Mock(return_value=mock_label_data)
@@ -109,7 +114,7 @@ cms_rpc.get_domain_values = mock.Mock(return_value={
 
 def _create_mock_context(mock_label_data):
     mock_context = {}
-    context_list = set([(intent, intent, treenode_id) for treenode_id, intent, question in mock_label_data])
+    context_list = set([(intent, intent, treenode_id) for intent, question, treenode_id in mock_label_data])
     mock_context["agents"] = list(context_list)
     return mock_context
 
@@ -151,33 +156,62 @@ def test_nonsense():
     #  TODO:  <03-05-18, yourname> #
     pass
 
-def atest_train():
-    service = NLUService()
+
+def test_train():
+    db.clear_intent_question("C")
     domain_id = "C"
-    service.train(domain_id, ("logistic", "0.1"))
-    db.assert_intent_question(domain_id, mock_label_data)
+    robot = NLURobot.get_robot(domain_id)
+    robot.train(("logistic", "0.1"))
+    helper.assert_intent_question(domain_id, mock_label_data)
 
 
-def test_intent():
-    mock_context = _create_mock_context(mock_label_data)
-    domain_id = "C"
-    intent_object = IntentRecognizer.get_intent_recognizer(domain_id)
-    for data in mock_label_data:
-        tr, intent, question = data
-        label = intent_object.strict_classify(mock_context, question)[0]
-        try:
-            label = intent_object.strict_classify(mock_context, question)[0]
-            assert(intent == label)
-        except:
-            print "***", label
-        print intent_object.fuzzy_classify(mock_context, question)
+class TestClassifier(object):
+    def test_intent(self):
+        self.mock_context = _create_mock_context(mock_label_data)
+        self.domain_id = "C"
+        self.intent = IntentRecognizer.get_intent_recognizer(self.domain_id)
+        for data in mock_label_data:
+            predicted_label = self.intent.strict_classify(self.mock_context,
+                                                          data.question)[0]
+            if predicted_label != data.label:
+                # filtered by priority
+                assert(predicted_label == '信用卡什么时候还款')
+            else:
+                assert(predicted_label == data.label)
 
+        ## biz_classifier
+        count = 0.0
+        for data in mock_label_data:
+            predicted = self.intent._biz_classifier.predict(data.question)[0][0]
+            if predicted.label == data.label:
+                count += 1
+        log.info("Biz Classify Precise: {0}".format(count/len(mock_label_data)))
+        assert(count >= 0.9)
 
+        ## biz vs casual_talk
+        count = 0.0
+        for data in mock_label_data:
+            predicted = self.intent._biz_chat_classifier.predict(data.question)[0][0]
+            if predicted.label == 'biz':
+                count += 1
+        log.info("Biz vs. Chat Precise: {0}".format(count/len(mock_label_data)))
 
+        ## fuzytest
+        count = 0.0
+        for data in mock_label_data:
+            predicted_label = self.intent.fuzzy_classify(self.mock_context, data.question)[0]
+            if predicted_label == data.label:
+                count += 1
+        log.info("Total Precise: {0}".format(count/len(mock_label_data)))
+        db.clear_intent_question("C")
 
+    def test_chat_biz(self):
+        """TODO: Docstring for test_chat_biz.
+        :returns: TODO
 
+        """
+        pass
 
-# TODO: casual talk test
 
 if __name__ == '__main__':
     assert(False)

@@ -15,13 +15,11 @@ class IntentQuestion(db.Document):
     }
 
 
-class IntentModel(db.Document):
+class IntentTreeNode(db.Document):
     domain = db.StringField(required=True)
-    algorithm = db.StringField(required=True)
-    features = db.FileField(required=False)
-    model = db.FileField(required=False)
-    interval = db.StringField(required=True)
+    treenode = db.StringField(required=True)
+    label = db.StringField(required=True, unique_with=["domain", "treenode", "label"])
 
     meta = {
-        'indexes': [('domain', 'model')]
+        'indexes': [('domain', 'label')]
     }

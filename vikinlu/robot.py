@@ -6,7 +6,6 @@ from pprint import pformat
 from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
-from vikinlu.model import IntentQuestion, IntentModel
 from vikinlu.util import cms_rpc, SYSTEM_DIR
 from vikinlu.config import ConfigApps
 
@@ -32,6 +31,7 @@ class NLURobot(object):
     """"""
     def __init__(self, domain_id, ):
         self.domain_id = domain_id
+        self.use_fuzzy = True  # use for test
         log.info("CREATE NLU ROBOT: {0}".format(domain_id))
 
 
@@ -51,6 +51,11 @@ class NLURobot(object):
         robot.init()
         self.robots[domain_id] = robot
         return robot
+
+    def reset_robot(self):
+        robot = NLURobot(self.domain_id)
+        robot.init()
+        self.robots[self.domain_id] = robot
 
     def readfile(self, path):
         # fp = open(path, "r", encoding='utf-8')
@@ -128,68 +133,21 @@ class NLURobot(object):
         multi_score = clf.score(x_test, y_test)
         return multi_score
 
-    def _train_to_product(self, x, y, z):
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.01)
-        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
-        stpwrdlst = self.readfile(stop_words_file).splitlines()
-        # tf-idf
-        count_vec = TfidfVectorizer(
-            binary=False,
-            decode_error='ignore',
-            stop_words=stpwrdlst)
-        tfidfspace = Bunch(
-            target_names=z,
-            labels=y,
-            tdm=[],
-            vocabulary={}
-        )
-        x_train = count_vec.fit_transform(x_train)
-        x_test = count_vec.transform(x_test)
-        tfidfspace.tdm = x_train
-        tfidfspace.vocabulary = count_vec.vocabulary_
-        feature_fname = os.path.join(ConfigApps.model_data_path, "{0}_feature.txt".format(self.domain_id))
-        with open(feature_fname, "wb") as f:
-            pickle.dump(tfidfspace, f)
-
-        # model
-        clf = LogisticRegression()
-        clf.fit(x_train, y_train)
-        model_fname = os.path.join(ConfigApps.model_data_path, "{0}_model.txt".format(self.domain_id))
-        with open(model_fname, "wb") as f:
-            pickle.dump(clf, f)
 
 
     def train(self, algorithm):
         log.debug("get_tree_label_data")
         label_data = cms_rpc.get_tree_label_data(self.domain_id)
-        # import pdb
-        # pdb.set_trace()
         log.debug("train with context")
         std_questions = {}
-        # save strict model
-        IntentQuestion.objects(domain=self.domain_id).delete()
-        db_questions = []
-        for td in label_data:
-            normalized_question = self._intent.strip_stopwords(td[2])
-            db_questions.append(IntentQuestion(domain=self.domain_id, treenode=td[0],
-                           label=td[1], question=normalized_question))
-            std_questions.setdefault(td[1], td[2])
-        IntentQuestion.objects.insert(db_questions)
-        # save fuzzy model
-        x = zip(*label_data)[2]
-        y = zip(*label_data)[1]
-        z = zip(*label_data)[2]
-        multi_score = self._train_to_summary(x, y, z)
-        self._train_to_product(x, y, z)
-        #interval = self.confidence_interval()
-        log.info("*"  * 30)
-        log.info(multi_score)
-        log.info("*"  * 30)
+        self._intent.train(self.domain_id, label_data)
+        for record in label_data:
+            std_questions.setdefault(record.label, record.question)
         return {
             "code": 0,
             "question_num": len(label_data),
             "intent_questions": std_questions,
-            "precision": multi_score
+            "precision": 0 # TODO
         }
 
     def predict(self, dm_robot, question):
@@ -210,15 +168,19 @@ class NLURobot(object):
     def _intent_classify(self, context, question):
         log.debug("Sensitive detecting.")
         if self._sensitive.detect(question):
+            log.info("FILTERED QUESTION")
             return "sensitive", 1.0
         intent, confidence = self._intent.strict_classify(context, question)
         log.info("STRICTLY CLASSIFY to [{0}]".format(intent))
         if intent:
             return intent, confidence
+        if self._nonsense.detect(question):
+            log.info("NONSENSE QUESTION")
+            return "nonsense", 1.0
         if self._intent.is_casual_talk(question):
             log.info("BINARY CLASSIFY to [casual_talk]")
             return "casual_talk", 1.0
-        if intent is None:
+        if self.use_fuzzy:
             intent, confidence = self._intent.fuzzy_classify(context, question)
             log.info("FUZZY CLASSIFY to {0} confidence {1}".format(intent, confidence))
         return intent, confidence

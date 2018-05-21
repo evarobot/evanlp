@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from vikinlu.model import IntentQuestion
-from vikinlu.util import SYSTEM_DIR
-from vikinlu.config import ConfigApps
 from vikinlu.util import cms_rpc
-import os
-import jieba
-import pickle
-from sklearn.feature_extraction.text import TfidfVectorizer
+from vikinlu.classifier import QuestionClassifier
 import logging
+import jieba
 log = logging.getLogger(__name__)
-jieba.dt.tmp_dir = ConfigApps.cache_data_path
-jieba.initialize()
 
 
 class IntentRecognizer(object):
     """"""
+    jieba_words = set()
+
     def __init__(self, domain_id):
         self._domain_id = domain_id
         self._feature = None
-        self._model = None
+        self._strict_classifier = QuestionClassifier.get_classifier(domain_id, "mongodb")
+        self._biz_classifier = QuestionClassifier.get_classifier(domain_id, "logistic")
+        self._biz_chat_classifier = QuestionClassifier.get_classifier(domain_id, "biz_chat")
 
     @classmethod
     def get_intent_recognizer(self, domain_id):
@@ -38,84 +35,43 @@ class IntentRecognizer(object):
             value_words.append(value['name'])
             value_words += value['words']
         value_words = set(value_words)
-        #  TODO:  not add word already added in other domain
         for word in value_words:
-            jieba.add_word(word, freq=10000)
+            if word not in self.jieba_words:
+                self.jieba_words.add(word)
+                jieba.add_word(word, freq=10000)
 
-        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
-        self.stop_words = self.readfile(stop_words_file).splitlines()
-
-    def strip_stopwords(self, question):
-        segs = jieba.cut(question, cut_all=False)
-        left_words = []
-        for seg in segs:
-            if seg not in self.stop_words:
-                left_words.append(seg)
-        return " ".join(left_words)
-
-    def _load_model(self):
-        model_fname = os.path.join(ConfigApps.model_data_path, "{0}_model.txt".format(self._domain_id))
-        self._model = self.readbunchobj(model_fname)
-
-        feature_fname = os.path.join(ConfigApps.model_data_path, "{0}_feature.txt".format(self._domain_id))
-        feature_set = self.readbunchobj(feature_fname)
-        self.features = TfidfVectorizer(
-            binary=False,
-            decode_error='ignore',
-            stop_words=self.stop_words,
-            vocabulary=feature_set.vocabulary)
+    def train(self, domain_id, label_data):
+        self._strict_classifier.train(label_data)
+        self._biz_classifier.train(label_data)
+        self._biz_chat_classifier.train(label_data)
 
     def strict_classify(self, context, question):
-        normalized_question = self.strip_stopwords(question)
-        objects = IntentQuestion.objects(domain=self._domain_id, question=normalized_question)
-        if not objects:
-            log.warning("还未训练")
-            return None, 1.0
-        if len(objects) > 1:
-            for unit in context["agents"]:
-                for candicate in objects:
-                    tag, intent, id_ = tuple(unit)
-                    if candicate.treenode == id_:
-                        return candicate.label, 1.0
-            log.info("INVALID INTENT!")
-            log.debug("candicate intents: {0}".format([obj.label for obj in objects]))
-            log.debug("context intents: {0}".format([obj[1] for obj in context["agents"]]))
-        elif len(objects) == 1:
-            return objects[0].label, 1.0
-        return None, 1.0
-
-    def readfile(self, path):
-        # fp = open(path, "r", encoding='utf-8')
-        fp = open(path, "r")
-        content = fp.read()
-        fp.close()
-        return content
-
-    def readbunchobj(self, path):
-        file_obj = open(path, "rb")
-        bunch = pickle.load(file_obj)
-        file_obj.close()
-        return bunch
+        objects, confidence = self._strict_classifier.predict(question)
+        return self._get_valid_intent(context, objects), confidence
 
     def fuzzy_classify(self, context, question):
-        if self._model is None:
-            try:
-                self._load_model()
-            except Exception as e:
-                raise e
-                log.error("还未训练")
-        #  TODO: 用上下文过滤 #
-        x_test = []
-        x_test.append(" ".join(jieba.cut(question)))
-        x_test = self.features.fit_transform(x_test)
+        objects, confidence = self._biz_chat_classifier.predict(question)
+        if objects[0].label == 'casual_talk':
+            return (objects[0].label, confidence)
+        objects, confidence = self._biz_classifier.predict(question)
+        label = self._get_valid_intent(context, objects)
+        return (label, confidence)
 
-        predicted = self._model.predict(x_test)  # 返回标签
-        pre_proba = self._model.predict_proba(x_test)  # 返回概率
-
-        m = predicted[0]
-        p = max(pre_proba[0])
-
-        return (m, p)
+    def _get_valid_intent(self, context, candicates):
+        if not candicates:
+            return None
+        if len(candicates) > 1:
+            for unit in context["agents"]:
+                for candicate in candicates:
+                    tag, intent, id_ = tuple(unit)
+                    if candicate.treenode == id_:
+                        return candicate.label
+            log.info("INVALID INTENT!")
+            log.debug("candicate intents: {0}".format([obj.label for obj in candicates]))
+            log.debug("context intents: {0}".format([obj[1] for obj in context["agents"]]))
+        elif len(candicates) == 1:
+            return candicates[0].label
+        return None
 
     def is_casual_talk(self, question):
         return False

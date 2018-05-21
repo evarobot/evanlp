@@ -12,3 +12,4 @@ viki_qa/log/
 /data
 *log
 .ropeproject
+.pytest_cache

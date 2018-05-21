@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from vikinlu.util import cms_rpc
+from vikinlu.model import IntentQuestion
 
 
 class NonSense(object):
     def __init__(self):
-        self._words = []
+        self._words = set([u'你好', u'晚安'])
+        self._filter_length = 2
 
     @classmethod
     def get_nonsense(self, domain_id):
@@ -14,10 +16,14 @@ class NonSense(object):
         return nonsense
 
     def init_words(self, domain_id):
-        pass
+        for obj in IntentQuestion.objects(domain=domain_id):
+            if len(obj.question) <= self._filter_length:
+                self._words.add(obj.question)
 
     def detect(self, question):
-        raise NotImplementedError
+        if len(question) <= self._filter_length and question not in self._words:
+            return True
+        return False
 
 
 class Sensitive(object):
