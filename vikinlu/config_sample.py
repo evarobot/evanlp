@@ -85,21 +85,6 @@ class _ConfigMongo:
         return d if d is not None else self._db
 
 
-class _ConfigApps(object):
-    _cache_data_path = "/src/data/caches"
-    _model_data_path = "/src/data/models"
-
-    @property
-    def cache_data_path(self):
-        hst = os.environ.get("CACHE_DATA_PATH")
-        return hst if hst is not None else self._cache_data_path
-
-    @property
-    def model_data_path(self):
-        hst = os.environ.get("MODEL_DATA_PATH")
-        return hst if hst is not None else self._model_data_path
-
-
 class _ConfigNeo4j:
     _host = "127.0.0.1"
     _port = 7474
@@ -131,6 +116,5 @@ ConfigMongoTest = _ConfigMongoTest()
 ConfigMongo = _ConfigMongo()
 ConfigRedis = _ConfigRedis()
 ConfigLog = _ConfigLog()
-ConfigApps = _ConfigApps()
 ConfigNeo4j = _ConfigNeo4j()
 ConfigDeploy = _ConfigDeploy()

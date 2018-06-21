@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import logging
-from pprint import pformat
 
 from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.util import cms_rpc, SYSTEM_DIR
-from vikinlu.config import ConfigApps
-
+from vikinlu.classifier import BizChatClassifier
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cross_validation import train_test_split
@@ -107,56 +105,43 @@ class NLURobot(object):
 
         return global_interval
 
-    def _train_to_summary(self, x, y, z):
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-        stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
-        stpwrdlst = self.readfile(stop_words_file).splitlines()
-        # tf-idf
-        count_vec = TfidfVectorizer(
-            binary=False,
-            decode_error='ignore',
-            stop_words=stpwrdlst)
-        tfidfspace = Bunch(
-            target_names=z,
-            labels=y,
-            tdm=[],
-            vocabulary={}
-        )
-        x_train = count_vec.fit_transform(x_train)
-        x_test = count_vec.transform(x_test)
-        tfidfspace.tdm = x_train
-        tfidfspace.vocabulary = count_vec.vocabulary_
-
-        # model
-        clf = LogisticRegression()
-        clf.fit(x_train, y_train)
-        multi_score = clf.score(x_test, y_test)
-        return multi_score
-
-
-
     def train(self, algorithm):
         log.debug("get_tree_label_data")
         label_data = cms_rpc.get_tree_label_data(self.domain_id)
         log.debug("train with context")
-        std_questions = {}
-        self._intent.train(self.domain_id, label_data)
+        label_question = {}
+        label_question_count = {}
         for record in label_data:
-            std_questions.setdefault(record.label, record.question)
+            label_question.setdefault(record.label, record.question)
+            count = label_question_count.get(record.label, 0)
+            count += 1
+            label_question_count[record.label] = count
+        ret = self._intent.train(self.domain_id, label_data)
+        for label, value in ret['biz_statics']['class_precise'].iteritems():
+            ret['biz_statics']['class_precise'][label] = [value,
+                                                          label_question[label],
+                                                          label_question_count[label]]
+        ret['biz_chat_statics']['class_precise']['biz'] = [ret['biz_chat_statics']['class_precise']['biz'], u'业务', len(label_data)]
+        ret['biz_chat_statics']['class_precise']['casual_talk'] = [ret['biz_chat_statics']['class_precise']['casual_talk'], u'闲聊', len(BizChatClassifier.chat_label_data)]
+
         return {
             "code": 0,
-            "question_num": len(label_data),
-            "intent_questions": std_questions,
-            "precision": 0 # TODO
+            'statics': ret
         }
 
     def predict(self, dm_robot, question):
         # call rpc with dm_robot_id or call with dm robot directly
+        log.info("----------------%s------------------" % question)
         context = dm_robot.get_context()
         intent, confidence = self._intent_classify(context, question)
         d_slots = {}
         if intent and intent not in ["sensitive", "casual_talk"]:
-            d_slots = self._slot.recognize(question, context["valid_slots"])
+            # d_slots = self._slot.recognize(question, context["valid_slots"])
+            ret = cms_rpc.get_intent_slots_without_value(self.domain_id, intent)
+            if ret['code'] != 0:
+                log.error("调用失败！")
+            else:
+                d_slots = self._slot.recognize(question, ret["slots"])
             log.debug("SLOTS DETECT to {0}".format(d_slots))
         return {
             "question": question,

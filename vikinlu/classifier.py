@@ -95,7 +95,7 @@ class BizChatClassifier(FuzzyClassifier):
             self._load_chat_label_data()
 
         biz_chat_data += self.chat_label_data
-        super(BizChatClassifier, self).train(biz_chat_data)
+        return super(BizChatClassifier, self).train(biz_chat_data)
 
     def _load_chat_label_data(self):
         chat_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/casual_talk.txt")

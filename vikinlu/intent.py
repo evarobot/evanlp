@@ -42,8 +42,12 @@ class IntentRecognizer(object):
 
     def train(self, domain_id, label_data):
         self._strict_classifier.train(label_data)
-        self._biz_classifier.train(label_data)
-        self._biz_chat_classifier.train(label_data)
+        biz_statics = self._biz_classifier.train(label_data)
+        biz_chat_statics = self._biz_chat_classifier.train(label_data)
+        return {
+            'biz_statics': biz_statics,
+            'biz_chat_statics': biz_chat_statics
+        }
 
     def strict_classify(self, context, question):
         objects, confidence = self._strict_classifier.predict(question)
