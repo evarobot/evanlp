@@ -2,11 +2,11 @@
 # encoding: utf-8
 import os
 import jieba
-from vikinlu.model import IntentQuestion
+from vikinlu.model import IntentQuestion, IntentTreeNode
 from vikinlu.util import SYSTEM_DIR
 from evecms.models import Domain, Slot
 
-stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLP/data/stopwords.txt")
+stop_words_file = os.path.join(SYSTEM_DIR, "VikiNLU/data/stopwords.txt")
 with open(stop_words_file, "r") as f:
     lines = f.readlines()
     stopwords = set([line.strip().decode("utf-8") for line in lines])
@@ -29,3 +29,8 @@ def assert_intent_question(domain_id, data):
     for tuple_obj in data:
         tuple_obj = (tuple_obj.treenode, tuple_obj.label, strip_stopwords(tuple_obj.question))
         assert(tuple_obj in label_data)
+
+
+def clear_intent_question(domain_name):
+    IntentQuestion.objects(domain=domain_name).delete()
+    IntentTreeNode.objects(domain=domain_name).delete()

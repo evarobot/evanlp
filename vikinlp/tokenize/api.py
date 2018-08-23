@@ -17,4 +17,3 @@ class TokenizerI(api.TokenizerI):
         """ load keywords file
         """
         pass
-

@@ -5,3 +5,4 @@ vikinlu
    :maxdepth: 4
 
    vikinlu
+   vikinlp

@@ -2,11 +2,12 @@
 # encoding: utf-8
 import copy
 import functools
+import logging
 import sys
 
 from tornado.web import RequestHandler
 from tornado.escape import json_decode, json_encode
-from vikinlp.util.log import gen_log as log
+log = logging.getLogger(__name__)
 
 HTTP_METHOD = ["get", "post", "put", "delete", "head", "options"]
 
@@ -71,6 +72,7 @@ class Versioned(object):
         for method in HTTP_METHOD:
             cls.new_decorator(method)
 
+
 Versioned.init_decorators()
 
 
@@ -119,7 +121,7 @@ class RobotAPIHandler(VersionedHandler):
             self.data = data
         except:
             log.error('params are not valid json: %s' % data_raw)
-            return self.write_json({ 'error': '参数错误'})
+            return self.write_json({'error': '参数错误'})
 
     def get_version(self):
         return str(self.data.get("version", ""))

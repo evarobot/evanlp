@@ -3,10 +3,10 @@
 import jieba
 import jieba.posseg as pseg
 
-from vikinlp.nlp.tokenize.api import TokenizerI
+from vikinlp.tokenize.api import TokenizerI
 
 
-jieba.initialize() # load default dict immediatly
+jieba.initialize()  # load default dict immediatly
 
 
 class JieBa(TokenizerI):

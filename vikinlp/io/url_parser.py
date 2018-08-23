@@ -30,7 +30,7 @@ from six.moves.urllib.request import url2pathname
 
 from nltk.data import FileSystemPathPointer, ZipFilePathPointer, GzipFileSystemPathPointer
 from vikinlp.util import PROJECT_DIR
-from vikinlp.config import DataConfig
+from vikinlp.config import ConfigApps
 
 
 vikinlp_path = os.path.join(PROJECT_DIR, 'data')
@@ -167,7 +167,7 @@ def resource_url(resource_url):
     """
     type_, url = split_resource_url(normalize_resource_url(resource_url))
     if type_ == 'vikinlp':
-        url = os.path.join(vikinlp_path, url)
+        url = os.path.join(ConfigApps.nlp_data_path, url)
     return url
 
 
@@ -200,7 +200,7 @@ if sys.platform.startswith('win'):
 else:
     # Common locations on UNIX & OS X:
     path += [
-        DataConfig.nlp_data_path,
+        ConfigApps.nlp_data_path,
         str('/usr/share/vikinlp_data'),
         str('/usr/local/share/vikinlp_data'),
         str('/usr/lib/vikinlp_data'),

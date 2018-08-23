@@ -5,7 +5,6 @@ import logging
 import mongoengine
 import mock
 import copy
-import jieba
 from collections import namedtuple
 import os
 
@@ -14,12 +13,8 @@ from vikinlu.config import ConfigMongo, ConfigLog
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.robot import NLURobot
-from vikinlu.util import cms_rpc, PROJECT_DIR, SYSTEM_DIR
-from vikinlu.intent import IntentRecognizer
-from vikinlu import db
+from vikinlu.util import cms_rpc, PROJECT_DIR
 import helper
-
-from vikinlu.robot import NLURobot
 
 LabelData = namedtuple("LabelData", "label, question, treenode")
 init_logger(level="DEBUG", path=ConfigLog.log_path)
@@ -30,6 +25,7 @@ mongoengine.connect(db=ConfigMongo.database,
                     host=ConfigMongo.host,
                     port=ConfigMongo.port)
 log.info('连接Mongo开发测试环境[eve数据库]成功!')
+
 
 def mock_get_value(value_id):
     data = {
@@ -45,7 +41,6 @@ def mock_get_value(value_id):
         }
     }
     return data[value_id]
-
 
 
 def _create_mock_label_data():
@@ -120,7 +115,6 @@ def _create_mock_context(mock_label_data):
     return mock_context
 
 
-
 def test_sensitive():
     domain_id = "C"
     sensitive = Sensitive.get_sensitive(domain_id)
@@ -164,20 +158,17 @@ def test_nonsense():
     pass
 
 
-
-
-
 class TestClassifier(object):
     nlurobot = None
 
-    def atest_train(self):
-        db.clear_intent_question("C")
+    def test_train(self):
+        helper.clear_intent_question("C")
         domain_id = "C"
         TestClassifier.nlurobot = NLURobot.get_robot(domain_id)
         TestClassifier.nlurobot.train(("logistic", "0.1"))
         helper.assert_intent_question(domain_id, mock_label_data)
 
-    def atest_intent(self):
+    def test_intent(self):
         self.mock_context = _create_mock_context(mock_label_data)
         self.domain_id = "C"
         self.intent = TestClassifier.nlurobot._intent
@@ -190,23 +181,24 @@ class TestClassifier(object):
             else:
                 assert(predicted_label == data.label)
 
-        ## biz_classifier
+        # biz_classifier
         count = 0.0
         for data in mock_label_data:
             predicted = self.intent._biz_classifier.predict(data.question)[0][0]
             if predicted.label == data.label:
                 count += 1
-        log.info("Biz Classify Precise: {0}".format(count/len(mock_label_data)))
+        log.info(
+            "Biz Classify Precise: {0}".format(count / len(mock_label_data)))
         assert(count >= 0.9)
 
-        ## biz vs casual_talk
+        # biz vs casual_talk
         count = 0.0
         for data in mock_label_data:
             predicted = self.intent._biz_chat_classifier.predict(data.question)[0][0]
             if predicted.label == 'biz':
                 count += 1
         log.info("Biz vs. Chat Precise: {0}".format(count/len(mock_label_data)))
-        return
+
         ## fuzytest
         count = 0.0
         for data in mock_label_data:
@@ -214,7 +206,7 @@ class TestClassifier(object):
             if predicted_label == data.label:
                 count += 1
         log.info("Total Precise: {0}".format(count/len(mock_label_data)))
-        db.clear_intent_question("C")
+        helper.clear_intent_question("C")
 
     def test_chat_biz(self):
         """TODO: Docstring for test_chat_biz.

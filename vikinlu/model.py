@@ -18,7 +18,8 @@ class IntentQuestion(db.Document):
 class IntentTreeNode(db.Document):
     domain = db.StringField(required=True)
     treenode = db.StringField(required=True)
-    label = db.StringField(required=True, unique_with=["domain", "treenode", "label"])
+    label = db.StringField(required=True,
+                           unique_with=["domain", "treenode", "label"])
 
     meta = {
         'indexes': [('domain', 'label')]

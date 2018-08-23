@@ -13,3 +13,4 @@ viki_qa/log/
 *log
 .ropeproject
 .pytest_cache
+_build

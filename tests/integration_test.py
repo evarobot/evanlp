@@ -11,7 +11,7 @@ from vikinlu.filters import Sensitive
 from vikinlu.robot import NLURobot
 from vikinlu.util import cms_rpc
 from vikinlu.intent import IntentRecognizer
-from vikinlu import db
+import helper
 from evecms.models import (
     Domain,
     Slot
@@ -41,9 +41,9 @@ def test_integration_train():
     robot = NLURobot.get_robot(str(domain.pk))
     robot.train(("logistic", "0.1"))
     label_data = cms_rpc.get_tree_label_data(str(domain.pk))
-    db.assert_intent_question(str(domain.pk), label_data)
+    helper.assert_intent_question(str(domain.pk), label_data)
 
-db.clear_intent_question("C")
+helper.clear_intent_question("C")
 
 
 # TODO: casual talk test
