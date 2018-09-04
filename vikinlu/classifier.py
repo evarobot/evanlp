@@ -5,7 +5,7 @@ import os
 import jieba
 
 from collections import namedtuple
-from vikinlp.config import ConfigApps
+from vikinlu.config import ConfigApps
 from vikinlp.classifier.question_classifier import QuestionClassfier
 from vikinlu.util import PROJECT_DIR
 from vikinlu.model import IntentQuestion, IntentTreeNode
@@ -81,8 +81,8 @@ class QuestionSearch(object):
                                treenode=treenode, label=label))
         IntentQuestion.objects.insert(db_questions)
         IntentTreeNode.objects.insert(db_label_treenodes)
-        IntentTreeNode(domain=self.domain_id, treenode="", label="biz").save()
-        IntentTreeNode(domain=self.domain_id, treenode="",
+        IntentTreeNode(domain=self.domain_id, treenode=0, label="biz").save()
+        IntentTreeNode(domain=self.domain_id, treenode=0,
                        label="casual_talk").save()
 
 

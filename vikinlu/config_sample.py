@@ -43,26 +43,6 @@ class _ConfigRedis:
         return d if d is not None else self._db
 
 
-class _ConfigMongoTest:
-    _host = "127.0.0.1"
-    _port = 27017
-    _db = "eve_test"
-
-    @property
-    def host(self):
-        hst = os.environ.get("MONGO_HOST")
-        return hst if hst is not None else self._host
-
-    @property
-    def port(self):
-        prt = os.environ.get("MONGO_PORT")
-        return int(prt) if prt is not None else self._port
-
-    @property
-    def database(self):
-        d = os.environ.get("MONGO_DB")
-        return d if d is not None else self._db
-
 
 class _ConfigMongo:
     _host = "127.0.0.1"
@@ -83,6 +63,28 @@ class _ConfigMongo:
     def database(self):
         d = os.environ.get("MONGO_DB")
         return d if d is not None else self._db
+
+
+class _ConfigApps(object):
+    _cache_data_path = "/src/data/caches"
+    _model_data_path = "/src/data/models"
+    _nlp_data_path = os.path.realpath(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "..", "data"))
+
+    @property
+    def cache_data_path(self):
+        hst = os.environ.get("CACHE_DATA_PATH")
+        return hst if hst is not None else self._cache_data_path
+
+    @property
+    def model_data_path(self):
+        hst = os.environ.get("MODEL_DATA_PATH")
+        return hst if hst is not None else self._model_data_path
+
+    @property
+    def nlp_data_path(self):
+        hst = os.environ.get("NLP_DATA_PATH")
+        return hst if hst is not None else self._nlp_data_path
 
 
 class _ConfigNeo4j:
@@ -112,9 +114,8 @@ class _ConfigDeploy(object):
     #deploy = "production"
 
 
-ConfigMongoTest = _ConfigMongoTest()
 ConfigMongo = _ConfigMongo()
 ConfigRedis = _ConfigRedis()
 ConfigLog = _ConfigLog()
 ConfigNeo4j = _ConfigNeo4j()
-ConfigDeploy = _ConfigDeploy()
+ConfigApps = _ConfigApps()

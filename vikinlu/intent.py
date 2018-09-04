@@ -16,7 +16,7 @@ class IntentRecognizer(object):
     Attributes
     ----------
     custom_words : set, Custom words added to Tokenizer.
-    _biz_chat_classifier : BizChatClassifier, Classify question to business and
+    _biz_chat_classifier : BizChatClassifier, Classify question to business or
         casual_talk.
     _biz_classifier : FuzzyClassifier, Classify
     """
@@ -112,6 +112,8 @@ class IntentRecognizer(object):
 
         """
         objects, confidence = self._strict_classifier.predict(question)
+        if objects:
+            log.info("STRICTLY CLASSIFY to [{0}]".format(objects[0].label))
         return self._get_valid_intent(context, objects), confidence
 
     def fuzzy_classify(self, context, question):

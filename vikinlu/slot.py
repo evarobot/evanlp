@@ -40,19 +40,22 @@ class SlotRecognizer(object):
         """
         ret = cms_rpc.get_domain_slots(domain_id)
         if ret['code'] != 0:
-            raise
+            raise RuntimeError("Failed to invoke `get_domain_slots`.")
         for slot in ret["slots"]:
             d_values = {}
             for value_id in slot["values"].keys():
-                #  OPTIMIZE:
+                # @OPTIMIZE:
                 ret = cms_rpc.get_value(value_id)
                 if ret['code'] != 0:
-                    raise
+                    raise RuntimeError("Failed to invoke `get_value`.")
                 if ret["name"].startswith("@"):
                     continue
                 ret["words"].append(ret["name"])
                 d_values[ret["name"]] = ret["words"]
+            print slot["name"], d_values, "---------"
             self._slots[slot["name"]] = d_values
+        import pdb
+        pdb.set_trace()
 
     @classmethod
     def get_slot_recognizer(self, domain_id):
@@ -73,7 +76,6 @@ class SlotRecognizer(object):
         dict.
 
         """
-        #  TODO: move to vikinlp, pass slot_names and question as arguments.
         slots = {}
         for slot_name in slot_names:
             value = self._slots[slot_name]

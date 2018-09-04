@@ -151,7 +151,6 @@ class NLURobot(object):
             return "sensitive", 1.0
 
         intent, confidence = self._intent.strict_classify(context, question)
-        log.info("STRICTLY CLASSIFY to [{0}]".format(intent))
         if intent:
             return intent, confidence
 

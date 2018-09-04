@@ -3,19 +3,21 @@
 
 import logging
 import mongoengine
-import mock
+import helper
 
+from evecmsweb.app import setup_app
 from vikicommon.log import init_logger
 from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.robot import NLURobot
 from vikinlu.util import cms_rpc
-from vikinlu.intent import IntentRecognizer
-import helper
+from vikinlu.model import clear_intent_question
 from evecms.models import (
-    Domain,
-    Slot
+    Domain
 )
+
+app = setup_app()
+app.app_context()
 
 init_logger(level="DEBUG", path="./")
 log = logging.getLogger(__name__)
@@ -28,22 +30,23 @@ log.info('连接Mongo开发测试环境[eve数据库]成功!')
 
 
 def test_sensitive():
-    domain = Domain.objects.get(name="C")
-    sensitive = Sensitive.get_sensitive(str(domain.pk))
+    domain = Domain.query.filter_by(name="C").first()
+    sensitive = Sensitive.get_sensitive(str(domain.id))
     assert(set(sensitive._words) == set([u"共产党", u"毛泽东", u"法轮功"]))
     assert(sensitive.detect(u'共产党万岁') == True)
     assert(sensitive.detect(u'你叫什么') == False)
 
 
-
 def test_integration_train():
-    domain = Domain.objects.get(name="C")
-    robot = NLURobot.get_robot(str(domain.pk))
+    domain = Domain.query.filter_by(name="C").first()
+    robot = NLURobot.get_robot(str(domain.id))
     robot.train(("logistic", "0.1"))
-    label_data = cms_rpc.get_tree_label_data(str(domain.pk))
-    helper.assert_intent_question(str(domain.pk), label_data)
+    label_data = cms_rpc.get_tree_label_data(str(domain.id))
+    helper.assert_intent_question(str(domain.id), label_data)
 
-helper.clear_intent_question("C")
+
+clear_intent_question("C")
+
 
 
 # TODO: casual talk test

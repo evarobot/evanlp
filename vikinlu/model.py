@@ -6,7 +6,7 @@ import mongoengine as db
 
 class IntentQuestion(db.Document):
     domain = db.StringField(required=True)
-    treenode = db.StringField(required=True)
+    treenode = db.IntField(required=True)
     label = db.StringField(required=True)
     question = db.StringField(required=True)
 
@@ -17,10 +17,15 @@ class IntentQuestion(db.Document):
 
 class IntentTreeNode(db.Document):
     domain = db.StringField(required=True)
-    treenode = db.StringField(required=True)
+    treenode = db.IntField(required=True)
     label = db.StringField(required=True,
                            unique_with=["domain", "treenode", "label"])
 
     meta = {
         'indexes': [('domain', 'label')]
     }
+
+
+def clear_intent_question(domain_name):
+    IntentQuestion.objects(domain=domain_name).delete()
+    IntentTreeNode.objects(domain=domain_name).delete()

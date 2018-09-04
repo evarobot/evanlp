@@ -14,6 +14,7 @@ from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.robot import NLURobot
 from vikinlu.util import cms_rpc, PROJECT_DIR
+from vikinlu.model import clear_intent_question
 import helper
 
 LabelData = namedtuple("LabelData", "label, question, treenode")
@@ -162,7 +163,7 @@ class TestClassifier(object):
     nlurobot = None
 
     def test_train(self):
-        helper.clear_intent_question("C")
+        clear_intent_question("C")
         domain_id = "C"
         TestClassifier.nlurobot = NLURobot.get_robot(domain_id)
         TestClassifier.nlurobot.train(("logistic", "0.1"))
@@ -206,7 +207,7 @@ class TestClassifier(object):
             if predicted_label == data.label:
                 count += 1
         log.info("Total Precise: {0}".format(count/len(mock_label_data)))
-        helper.clear_intent_question("C")
+        clear_intent_question("C")
 
     def test_chat_biz(self):
         """TODO: Docstring for test_chat_biz.
