@@ -112,7 +112,7 @@ class LogisticRegressionClassifier(QuestionClassfier):
         return count_vec, clf
 
     def predict(self, question):
-        assert(self.model)
+        assert(self.model and "model not trained")
         x_test = " ".join(jieba.cut(question))
         x_test = self.features.transform([x_test])
         label = self.model.predict(x_test)[0]  # 返回标签

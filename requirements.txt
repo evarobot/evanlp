@@ -3,3 +3,4 @@ scipy
 jieba
 sklearn
 nltk
+flask

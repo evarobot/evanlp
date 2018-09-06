@@ -26,5 +26,5 @@ def assert_intent_question(domain_id, data):
     for db_obj in intent_questions:
         label_data.add((db_obj.treenode, db_obj.label, db_obj.question))
     for tuple_obj in data:
-        tuple_obj = (tuple_obj.treenode, tuple_obj.label, strip_stopwords(tuple_obj.question))
+        tuple_obj = (int(tuple_obj.treenode), tuple_obj.label, strip_stopwords(tuple_obj.question))
         assert(tuple_obj in label_data)

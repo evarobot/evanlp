@@ -52,10 +52,7 @@ class SlotRecognizer(object):
                     continue
                 ret["words"].append(ret["name"])
                 d_values[ret["name"]] = ret["words"]
-            print slot["name"], d_values, "---------"
             self._slots[slot["name"]] = d_values
-        import pdb
-        pdb.set_trace()
 
     @classmethod
     def get_slot_recognizer(self, domain_id):
