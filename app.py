@@ -5,27 +5,14 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
+from vikinlu.config import ConfigApps
 
 from vikinlu.robot import NLURobot
 
 app = Flask(__name__)
 
 
-class _Config(object):
-    """"""
-
-    log_level = "INFO"
-    log_path = "/Users/bitmain/logs/NLU/"
-
-    SECRET_KEY = "a0c23007-f1c0-11e7-b62a-c8e0eb182c79"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/CMS"
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-
-
-Config = _Config()
-
-
-app.config.from_object(Config)
+app.config.from_object(ConfigApps)
 db = SQLAlchemy()
 
 
