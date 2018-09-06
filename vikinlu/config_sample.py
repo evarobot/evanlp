@@ -71,6 +71,10 @@ class _ConfigApps(object):
     _nlp_data_path = os.path.realpath(os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..", "data"))
 
+    SECRET_KEY = "a0c23007-f1c0-11e7-b62a-c8e0eb182c79"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/CMS"
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+
     @property
     def cache_data_path(self):
         hst = os.environ.get("CACHE_DATA_PATH")
