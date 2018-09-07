@@ -5,15 +5,18 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
-from vikinlu.config import ConfigApps
+from flask_mongoengine import MongoEngine
 
+from vikinlu.config import ConfigApps, ConfigMongo
 from vikinlu.robot import NLURobot
 
 app = Flask(__name__)
 
 
+app.config.from_object(ConfigMongo)
 app.config.from_object(ConfigApps)
 db = SQLAlchemy()
+mongodb = MongoEngine()
 
 
 @app.route("/v2/nlu/<domain_id>/predict", methods=["GET", "POST"])
@@ -33,4 +36,5 @@ def train(domain_id):
 
 if __name__ == '__main__':
     db.init_app(app)
+    mongodb.init_app(app)
     app.run()

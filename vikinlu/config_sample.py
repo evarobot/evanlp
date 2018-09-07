@@ -43,7 +43,6 @@ class _ConfigRedis:
         return d if d is not None else self._db
 
 
-
 class _ConfigMongo:
     _host = "127.0.0.1"
     _port = 27017
@@ -110,12 +109,6 @@ class _ConfigNeo4j:
     def namespace(self):
         d = os.environ.get("NEO4j_NAMESPACE")
         return d if d is not None else self._namespace
-
-
-class _ConfigDeploy(object):
-    """"""
-    deploy = "dev"
-    #deploy = "production"
 
 
 ConfigMongo = _ConfigMongo()

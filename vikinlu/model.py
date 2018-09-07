@@ -4,6 +4,23 @@
 import mongoengine as db
 
 
+def connect_db(dbname, host, port):
+    """ 连接数据库
+
+    Parameters
+    ----------
+    dmname : 数据库名称
+    host : 数据库IP
+    port : 数据库端口
+
+    Returns
+    -------
+    None
+
+    """
+    db.connect(db=dbname, host=host, port=port)
+
+
 class IntentQuestion(db.Document):
     domain = db.StringField(required=True)
     treenode = db.IntField(required=True)

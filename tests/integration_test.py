@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 import logging
-import mongoengine
 import helper
 
 from evecmsweb.app import setup_app
@@ -11,7 +10,7 @@ from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.robot import NLURobot
 from vikinlu.util import cms_rpc
-from vikinlu.model import clear_intent_question
+from vikinlu.model import clear_intent_question, connect_db
 from evecms.models import (
     Domain
 )
@@ -23,10 +22,11 @@ init_logger(level="DEBUG", path="./")
 log = logging.getLogger(__name__)
 dm_robot_id = "12345"
 
-mongoengine.connect(db=ConfigMongo.database,
-                    host=ConfigMongo.host,
-                    port=ConfigMongo.port)
-log.info('连接Mongo开发测试环境[eve数据库]成功!')
+connect_db(dbname=ConfigMongo.database,
+           host=ConfigMongo.host,
+           port=ConfigMongo.port)
+log.info('连接Mongo: IP-{0} DB-{1}'.format(
+    ConfigMongo.host, ConfigMongo.database))
 
 
 def test_sensitive():

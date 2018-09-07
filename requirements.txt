@@ -4,3 +4,4 @@ jieba
 sklearn
 nltk
 flask
+flask-mongoengine
