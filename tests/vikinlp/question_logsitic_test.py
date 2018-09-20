@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+"""
+测试问题扩增和算法
+"""
+
 import re
 import itertools
 import logging

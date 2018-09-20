@@ -4,7 +4,7 @@ import jieba
 import os
 import logging
 from sklearn import metrics
-from vikinlp.config import ConfigApps
+from vikinlp.config import ConfigData
 from vikinlp import io
 from vikinlp.util import PROJECT_DIR
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,7 +12,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression
 
 log = logging.getLogger(__name__)
-jieba.dt.tmp_dir = ConfigApps.cache_data_path
+jieba.dt.tmp_dir = ConfigData.cache_data_path
 jieba.initialize()
 
 

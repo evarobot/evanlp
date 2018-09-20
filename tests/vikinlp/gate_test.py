@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from vikinlp.gate import RPCServiceGate, HttpServiceGate
+from vikinlp.gate import HttpServiceGate
 
 
 def test_http_gate():
@@ -30,13 +30,3 @@ def test_http_gate():
     ret = http_gate.get_label_data('C')
     assert(ret['code'] == 0)
 
-
-def atest_rpc_gate():
-    from evecms.services.service import EVECMSService, connect_db
-    connect_db(dbname="evet_test", host="127.0.0.1")
-    rpcgate = RPCServiceGate(EVECMSService())
-    assert(rpcgate.get_label_data("C")['code'] == 0)
-
-
-if __name__ == '__main__':
-    assert(False)

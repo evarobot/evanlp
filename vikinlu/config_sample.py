@@ -22,27 +22,6 @@ class _ConfigLog(object):
         return lv if lv is not None else self._log_path
 
 
-class _ConfigRedis:
-    _host = "viki_redis"
-    _port = 6379
-    _db = 1
-
-    @property
-    def host(self):
-        hst = os.environ.get("REDIS_HOST")
-        return hst if hst is not None else self._host
-
-    @property
-    def port(self):
-        prt = os.environ.get("REDIS_PORT")
-        return prt if prt is not None else self._port
-
-    @property
-    def db(self):
-        d = os.environ.get("REDIS_DB")
-        return d if d is not None else self._db
-
-
 class _ConfigMongo:
     _host = "127.0.0.1"
     _port = 27017
@@ -64,15 +43,11 @@ class _ConfigMongo:
         return d if d is not None else self._db
 
 
-class _ConfigApps(object):
+class _ConfigData(object):
     _cache_data_path = "/src/data/caches"
     _model_data_path = "/src/data/models"
-    _nlp_data_path = os.path.realpath(os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "..", "data"))
-
-    SECRET_KEY = "a0c23007-f1c0-11e7-b62a-c8e0eb182c79"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@127.0.0.1:3306/CMS"
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    _data_server_host = "127.0.0.1"
+    _data_server_port = 8887
 
     @property
     def cache_data_path(self):
@@ -85,34 +60,16 @@ class _ConfigApps(object):
         return hst if hst is not None else self._model_data_path
 
     @property
-    def nlp_data_path(self):
-        hst = os.environ.get("NLP_DATA_PATH")
-        return hst if hst is not None else self._nlp_data_path
-
-
-class _ConfigNeo4j:
-    _host = "127.0.0.1"
-    _port = 7474
-    _namespace = "Cosmetics"
+    def data_server_host(self):
+        hst = os.environ.get("DATA_SERVER_HOST")
+        return hst if hst is not None else self._data_server_host
 
     @property
-    def host(self):
-        hst = os.environ.get("NEO4J_HOST")
-        return hst if hst is not None else self._host
-
-    @property
-    def port(self):
-        prt = os.environ.get("NEO4j_PORT")
-        return int(prt) if prt is not None else self._port
-
-    @property
-    def namespace(self):
-        d = os.environ.get("NEO4j_NAMESPACE")
-        return d if d is not None else self._namespace
+    def data_server_port(self):
+        hst = os.environ.get("DATA_SERVER_PORT")
+        return hst if hst is not None else self._data_server_port
 
 
 ConfigMongo = _ConfigMongo()
-ConfigRedis = _ConfigRedis()
 ConfigLog = _ConfigLog()
-ConfigNeo4j = _ConfigNeo4j()
-ConfigApps = _ConfigApps()
+ConfigData = _ConfigData()

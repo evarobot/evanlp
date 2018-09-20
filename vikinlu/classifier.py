@@ -5,7 +5,7 @@ import os
 import jieba
 
 from collections import namedtuple
-from vikinlu.config import ConfigApps
+from vikinlu.config import ConfigData
 from vikinlp.classifier.question_classifier import QuestionClassfier
 from vikinlu.util import PROJECT_DIR
 from vikinlu.model import IntentQuestion, IntentTreeNode
@@ -91,7 +91,7 @@ class FuzzyClassifier(object):
         self._domain_id = domain_id
         self._identifier = str(domain_id + "_biz")
         self._classifier = QuestionClassfier.get_classifier(algorithm)
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         if not self._classifier.load_model(model_fname):
             log.warning("Model has not been trained.")
@@ -106,7 +106,7 @@ class FuzzyClassifier(object):
         """
         # save fuzzy model
         summary = self._classifier.train(label_data)
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         self._classifier.save_model(model_fname)
         return summary
@@ -148,7 +148,7 @@ class BizChatClassifier(FuzzyClassifier):
             self._load_chat_label_data()
 
         biz_chat_data += self.chat_label_data
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         summary = super(BizChatClassifier, self).train(biz_chat_data)
         self._classifier.save_model(model_fname)
