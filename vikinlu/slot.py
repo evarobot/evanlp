@@ -43,15 +43,10 @@ class SlotRecognizer(object):
             raise RuntimeError("Failed to invoke `get_domain_slots`.")
         for slot in ret["slots"]:
             d_values = {}
-            for value_id in slot["values"].keys():
-                # @OPTIMIZE:
-                ret = cms_rpc.get_value(value_id)
-                if ret['code'] != 0:
-                    raise RuntimeError("Failed to invoke `get_value`.")
-                if ret["name"].startswith("@"):
-                    continue
-                ret["words"].append(ret["name"])
-                d_values[ret["name"]] = ret["words"]
+            ret = cms_rpc.get_slot_values_for_nlu(slot['id'])
+            for value in ret['data']['values']:
+                value["words"].append(value["name"])
+                d_values[value["name"]] = value["words"]
             self._slots[slot["name"]] = d_values
 
     @classmethod

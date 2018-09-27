@@ -72,8 +72,8 @@ class Sensitive(object):
         domain_id : str, Project id.
 
         """
-        rst = cms_rpc.get_filterwords(domain_id)
-        self._words = rst['words']
+        rst = cms_rpc.get_filter_words(domain_id)
+        self._words = rst['data']['words']
 
     def detect(self, question):
         """ Check if question contains sensitive words.

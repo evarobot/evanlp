@@ -30,15 +30,15 @@ log.info('连接Mongo: IP-{0} DB-{1}'.format(
 
 
 def test_sensitive():
-    domain = Domain.query.filter_by(name="C").first()
+    domain = Domain.query.filter_by(name="A").first()
     sensitive = Sensitive.get_sensitive(str(domain.id))
-    assert(set(sensitive._words) == set([u"共产党", u"毛泽东", u"法轮功"]))
+    assert(set(sensitive._words) == set([u"共产党", u"毛泽东"]))
     assert(sensitive.detect(u'共产党万岁') == True)
     assert(sensitive.detect(u'你叫什么') == False)
 
 
 def test_integration_train():
-    domain = Domain.query.filter_by(name="C").first()
+    domain = Domain.query.filter_by(name="A").first()
     robot = NLURobot.get_robot(str(domain.id))
     robot.train(("logistic", "0.1"))
     label_data = cms_rpc.get_tree_label_data(str(domain.id))
