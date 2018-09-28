@@ -1,0 +1,7 @@
+numpy
+scipy
+jieba
+sklearn
+nltk
+flask
+flask-mongoengine
