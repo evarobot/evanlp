@@ -65,37 +65,54 @@ class IntentRecognizer(object):
         Returns
         -------
         {
-            "biz_statics":  {
-                "class_precise": {
-                    "label1": "0.3",
+            "intents": [
 
-                    "label2": "0.2",
-                    ...
-                },
+                "label": 意图标识,
 
-                'total_precise': "0.38"
-            },
+                "count": 问题数量,
 
-            "biz_chat_statics": {
-                "class_precise": {
-                    "label1": "0.3",
+                "precise": 准去率,
 
-                    "label2": "0.2",
-                    ...
-                },
+            ]
 
-                'total_precise': "0.38"
-            }
+            "total_prciese": 业务准确率
+
         }
 
         """
         self._strict_classifier.train(label_data)
         biz_statics = self._biz_classifier.train(label_data)
         biz_chat_statics = self._biz_chat_classifier.train(label_data)
-        return {
-            'biz_statics': biz_statics,
-            'biz_chat_statics': biz_chat_statics
+
+        label_question = {}
+        label_question_count = {}
+        for record in label_data:
+            label_question.setdefault(record.label, record.question)
+            count = label_question_count.get(record.label, 0)
+            count += 1
+            label_question_count[record.label] = count
+        ret = {
+            "total_prciese": float(biz_statics['total_precise']) * float(biz_chat_statics['total_precise']),
+            "intents": [
+                {
+                    "label": "业务",
+                    "count": len(label_question_count.keys()),
+                    "pricise": biz_chat_statics["class_precise"]["biz"]
+                },
+                {
+                    "label": "闲聊",
+                    "count": 500,
+                    "pricise": biz_chat_statics["class_precise"]["casual_talk"]
+                }
+            ]
         }
+        for label, precise in biz_statics["class_precise"].iteritems():
+            ret["intents"].append({
+                "label": label,
+                "count": label_question_count[label],
+                "precise": precise
+            })
+        return ret
 
     def strict_classify(self, context, question):
         """ Classify question by database quering, given specific context.

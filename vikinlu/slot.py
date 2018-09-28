@@ -44,6 +44,8 @@ class SlotRecognizer(object):
         for slot in ret["slots"]:
             d_values = {}
             ret = cms_rpc.get_slot_values_for_nlu(slot['id'])
+            if ret['code'] != 0:
+                raise RuntimeError("Failed to invoke 'get_slot_values_for_nlu'")
             for value in ret['data']['values']:
                 value["words"].append(value["name"])
                 d_values[value["name"]] = value["words"]
