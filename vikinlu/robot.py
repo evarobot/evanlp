@@ -91,7 +91,7 @@ class NLURobot(object):
 
         ret = self._intent.train(self.domain_id, label_data)
         for label, confidence in\
-                ret['biz_statics']['class_precise'].iteritems():
+                ret['biz_statics']['class_precise'].items():
             ret['biz_statics']['class_precise'][label] = [
                 confidence, label_question[label], label_question_count[label]]
 

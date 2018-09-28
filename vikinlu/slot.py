@@ -76,7 +76,7 @@ class SlotRecognizer(object):
         slots = {}
         for slot_name in slot_names:
             value = self._slots[slot_name]
-            for value_name, value_pattern in value.iteritems():
+            for value_name, value_pattern in value.items():
                 ret = KeyWordEntity.recognize(question, value_pattern)
                 if ret:
                     slots[slot_name] = value_name
