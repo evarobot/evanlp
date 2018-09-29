@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import logging
-from vikinlu.util import cms_rpc
+import json
+from vikinlu.util import cms_gate
 from vikinlp.ner import KeyWordEntity
 log = logging.getLogger(__name__)
 
@@ -38,12 +39,12 @@ class SlotRecognizer(object):
         domain_id : str, Project id.
 
         """
-        ret = cms_rpc.get_domain_slots(domain_id)
+        ret = json.loads(cms_gate.get_domain_slots(domain_id))
         if ret['code'] != 0:
             raise RuntimeError("Failed to invoke `get_domain_slots`.")
         for slot in ret["slots"]:
             d_values = {}
-            ret = cms_rpc.get_slot_values_for_nlu(slot['id'])
+            ret = json.loads(cms_gate.get_slot_values_for_nlu(slot['id']))
             if ret['code'] != 0:
                 raise RuntimeError("Failed to invoke 'get_slot_values_for_nlu'")
             for value in ret['data']['values']:

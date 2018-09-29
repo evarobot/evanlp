@@ -2,14 +2,15 @@
 # encoding: utf-8
 
 import logging
+import json
 import helper
 
-from evecmsweb.app import setup_app
+from evecms.app import setup_app
 from vikicommon.log import init_logger
 from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.robot import NLURobot
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_gate
 from vikinlu.model import clear_intent_question, connect_db
 from evecms.models import (
     Domain
@@ -41,7 +42,7 @@ def test_integration_train():
     domain = Domain.query.filter_by(name="A").first()
     robot = NLURobot.get_robot(str(domain.id))
     robot.train(("logistic", "0.1"))
-    label_data = cms_rpc.get_tree_label_data(str(domain.id))
+    label_data = json.loads(cms_gate.get_tree_label_data(str(domain.id)))
     helper.assert_intent_question(str(domain.id), label_data)
 
 

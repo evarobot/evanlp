@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import json
 import logging
 import jieba
 
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_gate
 from vikinlu.classifier import QuestionSearch,\
     FuzzyClassifier, BizChatClassifier
 log = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class IntentRecognizer(object):
         Read words of value from database.
         """
         value_words = []
-        ret = cms_rpc.get_domain_values(self._domain_id)
+        ret = json.loads(cms_gate.get_domain_values(self._domain_id))
         if ret['code'] != 0:
             assert(False)
         for value in ret["values"]:
@@ -87,22 +88,22 @@ class IntentRecognizer(object):
         label_question = {}
         label_question_count = {}
         for record in label_data:
-            label_question.setdefault(record.label, record.question)
-            count = label_question_count.get(record.label, 0)
+            label_question.setdefault(record[0], record[1])
+            count = label_question_count.get(record[0], 0)
             count += 1
-            label_question_count[record.label] = count
+            label_question_count[record[0]] = count
         ret = {
             "total_prciese": float(biz_statics['total_precise']) * float(biz_chat_statics['total_precise']),
             "intents": [
                 {
                     "label": "业务",
                     "count": len(label_question_count.keys()),
-                    "pricise": biz_chat_statics["class_precise"]["biz"]
+                    "pricise": biz_statics["total_precise"]
                 },
                 {
                     "label": "闲聊",
                     "count": 500,
-                    "pricise": biz_chat_statics["class_precise"]["casual_talk"]
+                    "pricise": biz_chat_statics["total_precise"]
                 }
             ]
         }

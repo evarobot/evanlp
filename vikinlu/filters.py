@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from vikinlu.util import cms_rpc
+import json
+from vikinlu.util import cms_gate
 from vikinlu.model import IntentQuestion
 
 
@@ -72,7 +73,7 @@ class Sensitive(object):
         domain_id : str, Project id.
 
         """
-        rst = cms_rpc.get_filter_words(domain_id)
+        rst = json.loads(cms_gate.get_filter_words(domain_id))
         self._words = rst['data']['words']
 
     def detect(self, question):

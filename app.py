@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import json
+import logging
 from flask import Flask
 from flask import jsonify
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
 from flask_mongoengine import MongoEngine
 
+from vikicommon.log import init_logger
+from vikinlu.config import ConfigLog
 from vikinlu.config import ConfigApps, ConfigMongo
 from vikinlu.robot import NLURobot
 
@@ -17,6 +20,8 @@ app.config.from_object(ConfigMongo)
 app.config.from_object(ConfigApps)
 db = SQLAlchemy()
 mongodb = MongoEngine()
+init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
+log = logging.getLogger(__name__)
 
 
 @app.route("/v2/nlu/<domain_id>/predict", methods=["GET", "POST"])
@@ -29,9 +34,22 @@ def predict(domain_id):
 
 @app.route("/v2/nlu/<domain_id>/train", methods=["GET", "POST"])
 def train(domain_id):
+    data = json.loads(request.data)
     robot = NLURobot.get_robot(domain_id)
     ret = robot.train(("logistic", "0.1"))
+    log.info("TRAIN ROBOT: {0}".format(data["project"]))
     return jsonify(ret)
+
+
+@app.route("/v2/nlu/<domain_id>/reset", methods=["GET", "POST"])
+def reset(domain_id):
+    data = json.loads(request.data)
+    robot = NLURobot.get_robot(domain_id)
+    robot.reset_robot()
+    log.info("RESET ROBOT: {0}".format(data["project"]))
+    return jsonify({
+        "code": 0
+    })
 
 
 if __name__ == '__main__':

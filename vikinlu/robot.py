@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import logging
-
-from vikinlu.classifier import BizChatClassifier
+import json
 from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_gate
 
 
 log = logging.getLogger(__name__)
@@ -67,7 +66,7 @@ class NLURobot(object):
         }
         """
         #  TODO: label_data check
-        label_data = cms_rpc.get_tree_label_data(self.domain_id)
+        label_data = json.loads(cms_gate.get_tree_label_data(self.domain_id))
         ret = self._intent.train(self.domain_id, label_data)
 
         return {
@@ -95,8 +94,8 @@ class NLURobot(object):
         if intent and intent not in ["sensitive", "casual_talk"]:
             # d_slots = self._slot.recognize(question, context["valid_slots"])
             # OPTIMIZE: Cache #
-            ret = cms_rpc.get_intent_slots_without_value(self.domain_id,
-                                                         intent)
+            ret = json.loads(cms_gate.get_intent_slots_without_value(
+                self.domain_id, intent))
             if ret['code'] != 0:
                 log.error("调用失败！")
                 return {}
