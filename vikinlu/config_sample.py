@@ -70,6 +70,7 @@ class _ConfigData(object):
         return hst if hst is not None else self._data_server_port
 
 
+
 ConfigMongo = _ConfigMongo()
 ConfigLog = _ConfigLog()
 ConfigData = _ConfigData()

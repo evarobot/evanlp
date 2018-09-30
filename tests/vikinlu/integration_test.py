@@ -2,14 +2,15 @@
 # encoding: utf-8
 
 import logging
+import json
 import helper
 
-from evecmsweb.app import setup_app
+from evecms.app import setup_app
 from vikicommon.log import init_logger
 from vikinlu.config import ConfigMongo
 from vikinlu.filters import Sensitive
 from vikinlu.robot import NLURobot
-from vikinlu.util import cms_rpc
+from vikinlu.util import cms_gate
 from vikinlu.model import clear_intent_question, connect_db
 from evecms.models import (
     Domain
@@ -30,18 +31,18 @@ log.info('连接Mongo: IP-{0} DB-{1}'.format(
 
 
 def test_sensitive():
-    domain = Domain.query.filter_by(name="C").first()
+    domain = Domain.query.filter_by(name="A").first()
     sensitive = Sensitive.get_sensitive(str(domain.id))
-    assert(set(sensitive._words) == set([u"共产党", u"毛泽东", u"法轮功"]))
+    assert(set(sensitive._words) == set([u"共产党", u"毛泽东"]))
     assert(sensitive.detect(u'共产党万岁') == True)
     assert(sensitive.detect(u'你叫什么') == False)
 
 
 def test_integration_train():
-    domain = Domain.query.filter_by(name="C").first()
+    domain = Domain.query.filter_by(name="A").first()
     robot = NLURobot.get_robot(str(domain.id))
     robot.train(("logistic", "0.1"))
-    label_data = cms_rpc.get_tree_label_data(str(domain.id))
+    label_data = json.loads(cms_gate.get_tree_label_data(str(domain.id)))
     helper.assert_intent_question(str(domain.id), label_data)
 
 

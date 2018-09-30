@@ -70,6 +70,7 @@ class QuestionSearch(object):
         db_label_treenodes = []
         label_treenode = set()
         for td in label_data:
+            td = LabelData(label=td[0], question=td[1], treenode=td[2])
             normalized_question = strip_stopwords(td.question)
             db_questions.append(
                 IntentQuestion(domain=self.domain_id, treenode=td.treenode,
@@ -142,8 +143,8 @@ class BizChatClassifier(FuzzyClassifier):
     def train(self, label_data):
         biz_chat_data = []
         for data in label_data:
-            biz_chat_data.append(LabelData(label="biz", question=data.question,
-                                           treenode=data.treenode))
+            biz_chat_data.append(LabelData(label=data[0], question=data[1],
+                                           treenode=data[2]))
         if self.chat_label_data == []:
             self._load_chat_label_data()
 

@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 import logging
+import json
 import mongoengine
 import mock
 import copy
@@ -13,7 +14,7 @@ from vikinlu.config import ConfigMongo, ConfigLog
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.robot import NLURobot
-from vikinlu.util import cms_rpc, PROJECT_DIR
+from vikinlu.util import cms_gate, PROJECT_DIR
 from vikinlu.model import clear_intent_question
 import helper
 
@@ -28,24 +29,29 @@ mongoengine.connect(db=ConfigMongo.database,
 log.info('连接Mongo开发测试环境[eve数据库]成功!')
 
 
-def mock_get_value(value_id):
+def mock_get_slot_values_for_nlu(slot_id):
     data = {
-        'id1': {
-            'code': 0,
-            'name': u'周黑鸭',
-            'words': [u'鸭鸭', u'鸭翅', u'-小鸭鸭', u'-小鸭翅']
-        },
-        'id2': {
-            'code': 0,
-            'name': u'耐克',
-            'words': [u'耐克']
+        'code': 0,
+        'data': {
+            'values': [
+                {
+                    'name': u'周黑鸭',
+                    'words': [u'鸭鸭', u'鸭翅', u'-小鸭鸭', u'-小鸭翅'],
+                    'update_time': '2018-03-03'
+                },
+
+                {
+                    'name': u'耐克',
+                    'words': [u'耐克'],
+                    'update_time': '2018-03-03'
+                }
+            ]
         }
     }
-    return data[value_id]
+    return json.dumps(data)
 
 
 def _create_mock_label_data():
-    from evecms.services.service import LabelData
     path1 = os.path.join(PROJECT_DIR, "tests/data/guangkai.txt")
     mock_label_list = list()
     with open(str(path1), "r") as f:
@@ -69,14 +75,17 @@ def _create_mock_label_data():
 
 mock_label_data = _create_mock_label_data()
 
-cms_rpc.get_tree_label_data = mock.Mock(return_value=mock_label_data)
+cms_gate.get_tree_label_data = mock.Mock(
+    return_value=json.dumps(mock_label_data))
 
-cms_rpc.get_filterwords = mock.Mock(return_value={
+cms_gate.get_filter_words = mock.Mock(return_value=json.dumps({
     'code': 0,
-    'words': [u"共产党", u"毛泽东", u"法轮功"]
-})
+    'data': {
+        'words': [u"共产党", u"毛泽东", u"法轮功"]
+    }
+}))
 
-cms_rpc.get_domain_slots = mock.Mock(return_value={
+cms_gate.get_domain_slots = mock.Mock(return_value=json.dumps({
     'code': 0,
     'slots': [
         {
@@ -88,11 +97,12 @@ cms_rpc.get_domain_slots = mock.Mock(return_value={
             }
         }
     ]
-})
+}))
 
-cms_rpc.get_value = mock.Mock(side_effect=mock_get_value)
+cms_gate.get_slot_values_for_nlu = mock.Mock(
+    side_effect=mock_get_slot_values_for_nlu)
 
-cms_rpc.get_domain_values = mock.Mock(return_value={
+cms_gate.get_domain_values = mock.Mock(return_value=json.dumps({
     'code': 0,
     'values': [
         {
@@ -106,7 +116,7 @@ cms_rpc.get_domain_values = mock.Mock(return_value={
             "words": [],
         }
     ]
-})
+}))
 
 
 def _create_mock_context(mock_label_data):
@@ -163,8 +173,8 @@ class TestClassifier(object):
     nlurobot = None
 
     def test_train(self):
-        clear_intent_question("C")
-        domain_id = "C"
+        clear_intent_question("A")
+        domain_id = "A"
         TestClassifier.nlurobot = NLURobot.get_robot(domain_id)
         TestClassifier.nlurobot.train(("logistic", "0.1"))
         helper.assert_intent_question(domain_id, mock_label_data)
@@ -209,12 +219,6 @@ class TestClassifier(object):
         log.info("Total Precise: {0}".format(count/len(mock_label_data)))
         clear_intent_question("C")
 
-    def test_chat_biz(self):
-        """TODO: Docstring for test_chat_biz.
-        :returns: TODO
-
-        """
-        pass
 
 
 if __name__ == '__main__':
