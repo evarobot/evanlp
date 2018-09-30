@@ -70,12 +70,7 @@ class _ConfigData(object):
         return hst if hst is not None else self._data_server_port
 
 
-class _ConfigApps(object):
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:123456@localhost:3306/CMS"
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-
 
 ConfigMongo = _ConfigMongo()
 ConfigLog = _ConfigLog()
 ConfigData = _ConfigData()
-ConfigApps = _ConfigApps

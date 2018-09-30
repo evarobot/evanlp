@@ -7,8 +7,10 @@ from flask import jsonify
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
 from flask_mongoengine import MongoEngine
+from threading import Thread
 
 from vikicommon.log import init_logger
+from vikicommon.gate.cms import cms_gate
 from vikinlu.config import ConfigLog
 from vikinlu.config import ConfigApps, ConfigMongo
 from vikinlu.robot import NLURobot
@@ -22,6 +24,14 @@ db = SQLAlchemy()
 mongodb = MongoEngine()
 init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
 log = logging.getLogger(__name__)
+
+
+def train_thread(domain_id, data):
+    robot = NLURobot.get_robot(domain_id)
+    ret = robot.train(("logistic", "0.1"))
+    log.info("TRAIN ROBOT: {0}".format(data["project"]))
+    ret["domain_name"] = data["project"]
+    cms_gate.train_notify(ret)
 
 
 @app.route("/v2/nlu/<domain_id>/predict", methods=["GET", "POST"])
@@ -63,12 +73,10 @@ def train(domain_id):
     }
     """
     data = json.loads(request.data)
-    robot = NLURobot.get_robot(domain_id)
-    ret = robot.train(("logistic", "0.1"))
-    log.info("TRAIN ROBOT: {0}".format(data["project"]))
+    thread = Thread(target=train_thread, args=(domain_id, data))
+    thread.start()
     return jsonify({
-        "code": 0,
-        "data": ret
+        "code": 0
     })
 
 
