@@ -34,11 +34,42 @@ def predict(domain_id):
 
 @app.route("/v2/nlu/<domain_id>/train", methods=["GET", "POST"])
 def train(domain_id):
+    """
+    Parameters
+    ----------
+    algorithm : str, Algorithm name.
+
+    Returns
+    -------
+    {
+        "code": 0,
+
+        "data": {
+
+            "intents": [
+
+                "label": 意图标识,
+
+                "count": 问题数量,
+
+                "precise": 准去率,
+
+            ]
+
+            "total_prciese": 业务准确率
+
+        }
+
+    }
+    """
     data = json.loads(request.data)
     robot = NLURobot.get_robot(domain_id)
     ret = robot.train(("logistic", "0.1"))
     log.info("TRAIN ROBOT: {0}".format(data["project"]))
-    return jsonify(ret)
+    return jsonify({
+        "code": 0,
+        "data": ret
+    })
 
 
 @app.route("/v2/nlu/<domain_id>/reset", methods=["GET", "POST"])

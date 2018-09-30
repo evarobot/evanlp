@@ -68,11 +68,7 @@ class NLURobot(object):
         #  TODO: label_data check
         label_data = json.loads(cms_gate.get_tree_label_data(self.domain_id))
         ret = self._intent.train(self.domain_id, label_data)
-
-        return {
-            "code": 0,
-            'statics': ret
-        }
+        return ret
 
     def predict(self, context, question):
         """ Return NLU result like intent and slots.
