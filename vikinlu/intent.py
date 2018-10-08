@@ -126,7 +126,7 @@ class IntentRecognizer(object):
 
         Returns
         -------
-        (label, confidence) : (str, float)
+        (label, confidence, node_id) : (str, float, int)
 
         """
         objects, confidence = self._strict_classifier.predict(question)
@@ -144,13 +144,14 @@ class IntentRecognizer(object):
                         agents.
         question : str, Dialogue text from user.
 
-        Returns -------
-        (label, confidence) : (str, float)
+        Returns
+        -------
+        (label, confidence, node_id) : (str, float, int)
 
         """
         objects, confidence = self._biz_chat_classifier.predict(question)
         if objects[0].label == 'casual_talk':
-            return (objects[0].label, confidence)
+            return (objects[0].label, confidence, None)
         objects, confidence = self._biz_classifier.predict(question)
         label, node_id = self._get_valid_intent(context, objects)
         return (label, confidence, node_id)
@@ -160,7 +161,7 @@ class IntentRecognizer(object):
         Filter candicate agents by context, ending with one label.
         """
         if not candicates:
-            return None
+            return None, None
         if len(candicates) > 1:
             for unit in context["agents"]:
                 for candicate in candicates:

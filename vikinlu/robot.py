@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import logging
-import json
 from vikinlu.intent import IntentRecognizer
 from vikinlu.filters import NonSense, Sensitive
 from vikinlu.slot import SlotRecognizer
