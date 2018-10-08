@@ -31,6 +31,28 @@ class _ConfigIO(object):
         return _type if _type is not None else self._type
 
 
+class _ConfigData(object):
+    _cache_data_path = "/Users/bitmain/data/VikiNLU/caches"
+    _model_data_path = "/Users/bitmain/data/VikiNLU/models"
+    _nlp_data_path = os.path.realpath(os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), "..", "data"))
+
+    @property
+    def cache_data_path(self):
+        hst = os.environ.get("CACHE_DATA_PATH")
+        return hst if hst is not None else self._cache_data_path
+
+    @property
+    def model_data_path(self):
+        hst = os.environ.get("MODEL_DATA_PATH")
+        return hst if hst is not None else self._model_data_path
+
+    @property
+    def nlp_data_path(self):
+        hst = os.environ.get("NLP_DATA_PATH")
+        return hst if hst is not None else self._nlp_data_path
+
+
 ConfigLog = _ConfigLog()
-ConfigApps = _ConfigApps()
 ConfigIO = _ConfigIO()
+ConfigData = _ConfigData()

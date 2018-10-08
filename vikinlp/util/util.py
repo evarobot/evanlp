@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+
 import re
 import collections
 import os
-
 from vikinlp.util.langconv import Converter
 
 PROJECT_DIR = os.path.realpath(os.path.join(

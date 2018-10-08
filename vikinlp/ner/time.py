@@ -29,10 +29,6 @@ class TimeEntity(object):
         u'千': 1000,
         u'万': 10000,
     }
-    # print(cn_num_map.values())
-    # print(cn_num_map.keys())
-    # print([u'十'])
-    # print(cn_num_map.values() + cn_num_map.keys())
     # numbers = cn_num_map.values() + cn_num_map.keys() + [u'十']
 
     @classmethod

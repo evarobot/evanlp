@@ -31,7 +31,7 @@ def parameter_definition():
 
     # 学习率
     # dic_lr = {"learning_rate": 1e-5, "max_lr": 0.1, "step_size": 384, "mode": 'triangular2'}
-    flags.DEFINE_list('lr', [1e-5, 0.1, 384, "triangular2"], 'Learning Rate (default: 1e-3)')
+    flags.DEFINE_list('lr', 1e-3, 'Learning Rate (default: 1e-3)')
 
     # 批次大小
     flags.DEFINE_integer('batch_size', 64, 'Batch Size (default: 64)')

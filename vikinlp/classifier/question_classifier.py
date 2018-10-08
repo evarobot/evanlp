@@ -2,9 +2,12 @@ import copy
 from abc import abstractmethod
 import logging
 
+import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
 
 from vikinlp.ai_toolkit.util import sys
 from vikinlp.ai_toolkit.feeder import NLPFeeder
@@ -12,7 +15,8 @@ from vikinlp.ai_toolkit.cleaner import NLP_cleaner
 from vikinlp.ai_toolkit.visualization import ml_visualization, \
     statistical_visualization
 from vikinlp.ai_toolkit.preprocess import embed, cv_producer
-from vikinlp.ai_toolkit.inspection import model_based_not_w2v, model_based_w2v
+from vikinlp.ai_toolkit.inspection import statistics_based, \
+    model_based_not_w2v, model_based_w2v
 from vikinlp.ai_toolkit.evaluation import f1_score
 import vikinlp.io as io
 
@@ -44,7 +48,7 @@ class QuestionClassfier(object):
     def split_data(self, feature_name, label_name, train_untrain_rate,
                    valid_test_rate, str_path=None):
         self.x_train, self.y_train, self.x_valid, self.y_valid, \
-            self.x_test, self.y_test, self.lst_label \
+        self.x_test, self.y_test, self.lst_label \
             = cv_producer.dump_dataset(self.data, feature_name,
                                        label_name, train_untrain_rate,
                                        valid_test_rate, str_path)
@@ -83,6 +87,7 @@ class QuestionClassfier(object):
         #                                         "../input/stop_word.txt",
         #                                         "问题")
         print(data.describe())
+
 
         # 统计每个意图对应的问题数,升序排列并以柱状图来表示
         statistical_visualization.group_label(data, str_label_name,
@@ -177,12 +182,30 @@ class QuestionClassfier(object):
         lst_predicted_label, _ = self.predict(x)
 
         lst_true_label = []
+        # print(y)
         for item in y:
             lst_true_label.append(self.lst_label[item])
 
         # 输出评估指标
         accuracy, precision, recall, f1 \
             = f1_score.sklearn_get_metrics(lst_true_label, lst_predicted_label)
+
+        print("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f"
+              % (accuracy, precision, recall, f1))
+
+
+
+        print("特征\t表现\t模型预测标签")
+        for i in range(0, len(x)):
+            if lst_true_label[i] != lst_predicted_label[i]:
+                # 深度学习模型输入的x是已经编码化后的序列
+                if type(x[i]) is np.ndarray:
+                    text = self.tokenizer.sequences_to_texts([list(x[i])])[0]
+                # 非深度学习模型输入的x是一个文本的原始形式
+                else:
+                    text = x[i]
+                print(text, "\t", lst_true_label[i],
+                      "\t", lst_predicted_label[i])
 
         log.info("*" * 30)
         log.info("Model Precise: {0}".format(precision))
@@ -191,6 +214,16 @@ class QuestionClassfier(object):
         report = metrics.precision_recall_fscore_support(lst_true_label,
                                                          lst_predicted_label)
         labels = sorted(set(lst_true_label))
+
+        # 基于统计学的方法
+        cm = confusion_matrix(lst_true_label, lst_predicted_label)
+        plt.figure(figsize=(10, 10))
+
+        statistics_based.plot_confusion_matrix(cm,
+                                               classes=self.lst_label,
+                                               normalize=True)
+        # plt.show()
+
         class_precise = dict(zip(
             labels, map(lambda x: "%.2f" % round(x, 2), report[0])))
         return {

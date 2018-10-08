@@ -2,11 +2,12 @@
 # encoding: utf-8
 import logging
 import os
+
 import jieba
 import pandas
 
 from collections import namedtuple
-from vikinlu.config import ConfigApps
+from vikinlu.config import ConfigData
 from vikinlp.classifier.question_classifier import QuestionClassfier
 from vikinlu.util import PROJECT_DIR
 from vikinlu.model import IntentQuestion, IntentTreeNode
@@ -71,6 +72,7 @@ class QuestionSearch(object):
         db_label_treenodes = []
         label_treenode = set()
         for td in label_data:
+            td = LabelData(label=td[0], question=td[1], treenode=td[2])
             normalized_question = strip_stopwords(td.question)
             db_questions.append(
                 IntentQuestion(domain=self.domain_id, treenode=td.treenode,
@@ -92,7 +94,7 @@ class FuzzyClassifier(object):
         self._domain_id = domain_id
         self._identifier = str(domain_id + "_biz")
         self._classifier = QuestionClassfier.get_classifier(algorithm)
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         if not self._classifier.load_model(model_fname):
             log.warning("Model has not been trained.")
@@ -106,8 +108,6 @@ class FuzzyClassifier(object):
 
         """
         # save fuzzy model
-        # Modify
-        # =====
         self._classifier.embed_mode = "bow"
         tmp = zip(*label_data)
         tmp = list(tmp)
@@ -118,19 +118,10 @@ class FuzzyClassifier(object):
         self._classifier.split_data("Feature", "Label", 0.3, 0.5)
         summary = self._classifier.train(x=self._classifier.x_train,
                                          y=self._classifier.y_train)
-        # ---
-        # summary = self._classifier.train(label_data)
-        # =====
 
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
-
-        # Modify
-        # =====
         self._classifier.save_model(self._classifier.clf, model_fname)
-        # -----
-        # self._classifier.save_model(model_fname)
-        # =====
         return summary
 
     def predict(self, question):
@@ -164,26 +155,16 @@ class BizChatClassifier(FuzzyClassifier):
     def train(self, label_data):
         biz_chat_data = []
         for data in label_data:
-            biz_chat_data.append(LabelData(label="biz", question=data.question,
-                                           treenode=data.treenode))
+            biz_chat_data.append(LabelData(label=data[0], question=data[1],
+                                           treenode=data[2]))
         if self.chat_label_data == []:
             self._load_chat_label_data()
 
         biz_chat_data += self.chat_label_data
-        model_fname = os.path.join(ConfigApps.model_data_path,
+        model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         summary = super(BizChatClassifier, self).train(biz_chat_data)
-
-
-        # Modify
-        # =====
         self._classifier.save_model(self._classifier.clf, model_fname)
-        # -----
-        # super(BizChatClassifier, self)\
-        #     ._classifier.save_model(super(BizChatClassifier, self)
-        #                             ._classifier.clf, model_fname)
-        # =====
-
         return summary
 
     def _load_chat_label_data(self):

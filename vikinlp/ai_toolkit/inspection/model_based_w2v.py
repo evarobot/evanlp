@@ -34,10 +34,11 @@ def explain_one_instance(instance, class_names, top_label, classifier,
         MAX_SEQUENCE_LENGTH = max_sequence_length
 
     predicated_class_name = classifier.predict(vectorized_example)[0]
-    print("Predicated Class: " + str(class_names[predicated_class_name]))
+    # a = class_names
+    print("Predicated Class: " + predicated_class_name)
 
     # 如果模型预测错误，需要分析为什么会预测到这个标签
-    predicated_class = predicated_class_name
+    predicated_class = class_names.index(predicated_class_name)
 
     explainer = LimeTextExplainer(class_names=class_names)
     # predicated_class： 真正预测到的标签

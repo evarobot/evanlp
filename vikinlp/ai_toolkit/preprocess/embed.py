@@ -79,8 +79,8 @@ def get_word2vec_embeddings(list_text, vocab):
 
 
 def sequence_tokenize(list_label, x_train, y_train, x_valid,
-                      y_valid, x_test, y_test, embed_path):
-    vocab = read_w2v(embed_path, 1000)
+                      y_valid, x_test, y_test, embed_path, max_vocab):
+    vocab = read_w2v(embed_path, max_vocab)
     embedding_dim = len(vocab[list(vocab.keys())[0]])
     vocab_size = len(vocab)
     tokenizer = Tokenizer(num_words=vocab_size)
@@ -121,3 +121,9 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
         list_sample[2][1], embedding_dim, list_label, y_train, y_valid,\
         y_test, tokenizer, list_sample[0][2], list_sample[1][2],\
         list_sample[2][2]
+
+
+if __name__ == '__main__':
+    w2v = read_w2v("/home/jichaojie/Bitmain/VikiNLU/data/sgns.baidubaike.bigram-char",
+             200)
+    print(w2v["们"])

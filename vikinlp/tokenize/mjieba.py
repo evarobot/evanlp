@@ -34,5 +34,5 @@ mjieba = JieBa()
 __all__ = ['mjieba']
 
 if __name__ == '__main__':
-    print(mjieba.tokenize('今天下午吃饭'))
-    print(mjieba.posseg_cut('今天下午吃饭'))
+    print mjieba.tokenize('今天下午吃饭')
+    print mjieba.posseg_cut('今天下午吃饭')
