@@ -73,7 +73,7 @@ class Sensitive(object):
         domain_id : str, Project id.
 
         """
-        rst = json.loads(cms_gate.get_filter_words(domain_id))
+        rst = cms_gate.get_filter_words(domain_id)
         self._words = rst['data']['words']
 
     def detect(self, question):

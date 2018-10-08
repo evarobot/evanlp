@@ -41,7 +41,7 @@ class IntentRecognizer(object):
         Read words of value from database.
         """
         value_words = []
-        ret = json.loads(cms_gate.get_domain_values(self._domain_id))
+        ret = cms_gate.get_domain_values(self._domain_id)
         if ret['code'] != 0:
             assert(False)
         for value in ret["values"]:
@@ -132,7 +132,8 @@ class IntentRecognizer(object):
         objects, confidence = self._strict_classifier.predict(question)
         if objects:
             log.info("STRICTLY CLASSIFY to [{0}]".format(objects[0].label))
-        return self._get_valid_intent(context, objects), confidence
+        intent, node_id = self._get_valid_intent(context, objects)
+        return intent, confidence, node_id
 
     def fuzzy_classify(self, context, question):
         """ Classify question by algorithm model, given specific context.
@@ -151,8 +152,8 @@ class IntentRecognizer(object):
         if objects[0].label == 'casual_talk':
             return (objects[0].label, confidence)
         objects, confidence = self._biz_classifier.predict(question)
-        label = self._get_valid_intent(context, objects)
-        return (label, confidence)
+        label, node_id = self._get_valid_intent(context, objects)
+        return (label, confidence, node_id)
 
     def _get_valid_intent(self, context, candicates):
         """
@@ -165,8 +166,8 @@ class IntentRecognizer(object):
                 for candicate in candicates:
                     tag, intent, id_ = tuple(unit)
                     if candicate.treenode == id_:
-                        return candicate.label
+                        return candicate.label, id_
             log.info("NO VISIBLE AGENTS SATISFIED!")
         elif len(candicates) == 1:
-            return candicates[0].label
-        return None
+            return candicates[0].label, None
+        return None, None

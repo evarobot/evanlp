@@ -48,7 +48,7 @@ def mock_get_slot_values_for_nlu(slot_id):
             ]
         }
     }
-    return json.dumps(data)
+    return data
 
 
 def _create_mock_label_data():
@@ -76,16 +76,16 @@ def _create_mock_label_data():
 mock_label_data = _create_mock_label_data()
 
 cms_gate.get_tree_label_data = mock.Mock(
-    return_value=json.dumps(mock_label_data))
+    return_value=mock_label_data)
 
-cms_gate.get_filter_words = mock.Mock(return_value=json.dumps({
+cms_gate.get_filter_words = mock.Mock(return_value={
     'code': 0,
     'data': {
         'words': [u"共产党", u"毛泽东", u"法轮功"]
     }
-}))
+})
 
-cms_gate.get_domain_slots = mock.Mock(return_value=json.dumps({
+cms_gate.get_domain_slots = mock.Mock(return_value={
     'code': 0,
     'slots': [
         {
@@ -97,12 +97,12 @@ cms_gate.get_domain_slots = mock.Mock(return_value=json.dumps({
             }
         }
     ]
-}))
+})
 
 cms_gate.get_slot_values_for_nlu = mock.Mock(
     side_effect=mock_get_slot_values_for_nlu)
 
-cms_gate.get_domain_values = mock.Mock(return_value=json.dumps({
+cms_gate.get_domain_values = mock.Mock(return_value={
     'code': 0,
     'values': [
         {
@@ -116,7 +116,7 @@ cms_gate.get_domain_values = mock.Mock(return_value=json.dumps({
             "words": [],
         }
     ]
-}))
+})
 
 
 def _create_mock_context(mock_label_data):

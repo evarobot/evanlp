@@ -66,7 +66,7 @@ class NLURobot(object):
         }
         """
         #  TODO: label_data check
-        label_data = json.loads(cms_gate.get_tree_label_data(self.domain_id))
+        label_data = cms_gate.get_tree_label_data(self.domain_id)
         ret = self._intent.train(self.domain_id, label_data)
         return ret
 
@@ -85,13 +85,13 @@ class NLURobot(object):
         """
         # call rpc with dm_robot_id or call with dm robot directly
         log.info("----------------%s------------------" % question)
-        intent, confidence = self._intent_classify(context, question)
+        intent, confidence, node_id = self._intent_classify(context, question)
         d_slots = {}
         if intent and intent not in ["sensitive", "casual_talk"]:
             # d_slots = self._slot.recognize(question, context["valid_slots"])
             # OPTIMIZE: Cache #
-            ret = json.loads(cms_gate.get_intent_slots_without_value(
-                self.domain_id, intent))
+            ret = cms_gate.get_intent_slots_without_value(
+                self.domain_id, intent)
             if ret['code'] != 0:
                 log.error("调用失败！")
                 return {}
@@ -103,23 +103,23 @@ class NLURobot(object):
             "intent": intent,
             "confidence": confidence,
             "slots": d_slots,
+            "node_id": node_id
         }
 
     def _intent_classify(self, context, question):
         log.debug("Sensitive detecting.")
         if self._sensitive.detect(question):
             log.info("FILTERED QUESTION")
-            return "sensitive", 1.0
+            return "sensitive", 1.0, None
 
-        intent, confidence = self._intent.strict_classify(context, question)
+        intent, confidence, node_id = self._intent.strict_classify(context, question)
         if intent:
-            return intent, confidence
+            return intent, confidence, node_id
 
         if self._nonsense.detect(question):
             log.info("NONSENSE QUESTION")
-            return "nonsense", 1.0
+            return "nonsense", 1.0, None
 
-        intent, confidence = self._intent.fuzzy_classify(context, question)
-        log.info("FUZZY CLASSIFY to {0} confidence {1}".format(
-            intent, confidence))
-        return intent, confidence
+        intent, confidence, node_id = self._intent.fuzzy_classify(context, question)
+        log.info("FUZZY CLASSIFY to {0} confidence {1}".format( intent, confidence))
+        return intent, confidence, node_id

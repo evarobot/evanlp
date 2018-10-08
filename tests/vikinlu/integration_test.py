@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 import logging
-import json
 import helper
 
 from evecms.app import setup_app
@@ -42,7 +41,7 @@ def test_integration_train():
     domain = Domain.query.filter_by(name="A").first()
     robot = NLURobot.get_robot(str(domain.id))
     robot.train(("logistic", "0.1"))
-    label_data = json.loads(cms_gate.get_tree_label_data(str(domain.id)))
+    label_data = cms_gate.get_tree_label_data(str(domain.id))
     helper.assert_intent_question(str(domain.id), label_data)
 
 

@@ -2,6 +2,7 @@
 # encoding: utf-8
 import json
 import logging
+import time
 from flask import Flask
 from flask import jsonify
 from flask import request
@@ -14,6 +15,7 @@ from vikicommon.gate.cms import cms_gate
 from vikinlu.config import ConfigLog
 from vikinlu.config import ConfigApps, ConfigMongo
 from vikinlu.robot import NLURobot
+
 
 app = Flask(__name__)
 
@@ -28,9 +30,13 @@ log = logging.getLogger(__name__)
 
 def train_thread(domain_id, data):
     robot = NLURobot.get_robot(domain_id)
+    now = time.time()
     ret = robot.train(("logistic", "0.1"))
+    later = time.time()
     log.info("TRAIN ROBOT: {0}".format(data["project"]))
     ret["domain_name"] = data["project"]
+    ret["duration"] = float(later - now)
+    ret["domain_id"] = domain_id
     cms_gate.train_notify(ret)
 
 
@@ -66,7 +72,7 @@ def train(domain_id):
 
             ]
 
-            "total_prciese": 业务准确率
+            "total_precise": 业务准确率
 
         }
 
