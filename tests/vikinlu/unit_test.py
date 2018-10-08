@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 import logging
-import json
 import mongoengine
 import mock
 import copy
