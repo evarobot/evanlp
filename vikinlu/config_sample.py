@@ -70,7 +70,39 @@ class _ConfigData(object):
         return hst if hst is not None else self._data_server_port
 
 
+class _Config:
+
+    _host = "0.0.0.0"
+    _port = 8888
+    _debug = False
+
+    @staticmethod
+    def init_app(app):
+        app.config["IMAGE_UPLOAD_PATH"] = os.path.join(
+            app.config["MEDIA_PATH"], "image")
+        app.config["APK_UPLOAD_PATH"] = os.path.join(app.config["MEDIA_PATH"],
+                                                     "apk")
+        app.config["VIDEO_UPLOAD_PATH"] = os.path.join(
+            app.config["MEDIA_PATH"], "video")
+
+    @property
+    def host(self):
+        host = os.environ.get("NLU_HOST")
+        return host if host is not None else self._host
+
+    @property
+    def port(self):
+        port = os.environ.get("NLU_PORT")
+        return port if port is not None else self._port
+
+    @property
+    def debug(self):
+        debug = os.environ.get("DEBUG")
+        return debug if debug is not None else self._debug
+
+
 
 ConfigMongo = _ConfigMongo()
 ConfigLog = _ConfigLog()
 ConfigData = _ConfigData()
+Config = _Config()

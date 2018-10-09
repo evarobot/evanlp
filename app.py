@@ -6,14 +6,14 @@ import time
 from flask import Flask
 from flask import jsonify
 from flask import request
-from flask_sqlalchemy import SQLAlchemy
 from flask_mongoengine import MongoEngine
 from threading import Thread
 
 from vikicommon.log import init_logger
 from vikicommon.gate.cms import cms_gate
 from vikinlu.config import ConfigLog
-from vikinlu.config import ConfigApps, ConfigMongo
+from vikinlu.config import ConfigMongo
+from vikinlu.config import Config
 from vikinlu.robot import NLURobot
 
 
@@ -21,8 +21,6 @@ app = Flask(__name__)
 
 
 app.config.from_object(ConfigMongo)
-app.config.from_object(ConfigApps)
-db = SQLAlchemy()
 mongodb = MongoEngine()
 init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
 log = logging.getLogger(__name__)
@@ -98,6 +96,5 @@ def reset(domain_id):
 
 
 if __name__ == '__main__':
-    db.init_app(app)
     mongodb.init_app(app)
-    app.run()
+    app.run(host=Config.host, port=Config.port, debug=eval(Config.debug))
