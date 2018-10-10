@@ -4,7 +4,7 @@
 import mongoengine as db
 
 
-def connect_db(dbname, host, port):
+def connect_db(dbname, host, port, password):
     """ 连接数据库
 
     Parameters
@@ -18,7 +18,7 @@ def connect_db(dbname, host, port):
     None
 
     """
-    db.connect(db=dbname, host=host, port=port)
+    db.connect(db=dbname, host=host, port=port, password=password)
 
 
 class IntentQuestion(db.Document):

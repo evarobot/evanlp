@@ -32,8 +32,8 @@ class _ConfigIO(object):
 
 
 class _ConfigData(object):
-    _cache_data_path = "/Users/bitmain/data/VikiNLU/caches"
-    _model_data_path = "/Users/bitmain/data/VikiNLU/models"
+    _cache_data_path = "/src/data/caches"
+    _model_data_path = "/src/data/models"
     _nlp_data_path = os.path.realpath(os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..", "data"))
 
