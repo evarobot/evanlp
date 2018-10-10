@@ -19,9 +19,10 @@ from vikinlu.robot import NLURobot
 
 app = Flask(__name__)
 
+app.config['MONGODB_SETTINGS'] = ConfigMongo.MONGODB_SETTINGS
 
-app.config.from_object(ConfigMongo)
-mongodb = MongoEngine()
+db = MongoEngine()
+
 init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
 log = logging.getLogger(__name__)
 
@@ -96,5 +97,5 @@ def reset(domain_id):
 
 
 if __name__ == '__main__':
-    mongodb.init_app(app)
+    db.init_app(app)
     app.run(host=Config.host, port=Config.port, debug=eval(Config.debug))

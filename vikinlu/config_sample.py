@@ -22,25 +22,24 @@ class _ConfigLog(object):
         return lv if lv is not None else self._log_path
 
 
-class _ConfigMongo:
-    _host = "127.0.0.1"
+class _ConfigMongo(object):
+    _host = "39.108.48.176"
     _port = 27017
+    _password = "testmg@ns"
     _db = "eve"
+    _user = 'root'
+
+    def __init__(self):
+        self.db = os.environ.get("MONGO_DB", self._db)
+        self.host = os.environ.get("MONGO_HOST", self._host)
+        self.port = os.environ.get("MONGO_PORT", self._port)
+        self.username = os.environ.get("MONGO_USER", self._user)
+        self.password = os.environ.get("MONGO_PORT", self._password)
+        self.authentication_source = 'admin'
 
     @property
-    def host(self):
-        hst = os.environ.get("MONGO_HOST")
-        return hst if hst is not None else self._host
-
-    @property
-    def port(self):
-        prt = os.environ.get("MONGO_PORT")
-        return int(prt) if prt is not None else self._port
-
-    @property
-    def database(self):
-        d = os.environ.get("MONGO_DB")
-        return d if d is not None else self._db
+    def MONGODB_SETTINGS(self):
+        return self.__dict__
 
 
 class _ConfigData(object):
