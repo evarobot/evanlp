@@ -138,7 +138,13 @@ class BizChatClassifier(FuzzyClassifier):
 
     def __init__(self, domain_id, algorithm):
         super(BizChatClassifier, self).__init__(domain_id, algorithm)
+        self._domain_id = domain_id
+        self._identifier = str(domain_id + "casual")
         self._classifier = QuestionClassfier.get_classifier(algorithm)
+        model_fname = os.path.join(ConfigData.model_data_path,
+                                   self._identifier)
+        if not self._classifier.load_model(model_fname):
+            log.warning("Model has not been trained.")
 
     def train(self, label_data):
         biz_chat_data = []
