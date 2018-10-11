@@ -6,6 +6,9 @@
 
 import os
 
+from vikicommon import Config
+Config._sidecar_url = "http://127.0.0.1:9500"
+
 
 class _ConfigLog(object):
     _log_level = 'INFO'
