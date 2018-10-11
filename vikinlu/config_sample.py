@@ -76,7 +76,7 @@ class _Config:
 
     _host = "0.0.0.0"
     _port = 8888
-    _debug = False
+    _debug = "False"
 
     @staticmethod
     def init_app(app):
