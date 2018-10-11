@@ -96,6 +96,12 @@ def reset(domain_id):
     })
 
 
+@app.route('/health', methods=["GET"])
+def health_cheack():
+    "health cheack for sidecar"
+    return jsonify({"status": "UP"})
+
+
 if __name__ == '__main__':
     db.init_app(app)
     app.run(host=Config.host, port=Config.port, debug=eval(Config.debug))
