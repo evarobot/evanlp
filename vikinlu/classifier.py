@@ -2,7 +2,7 @@
 # encoding: utf-8
 import logging
 import os
-import jieba
+import re
 
 from collections import namedtuple
 from vikinlu.config import ConfigData
@@ -21,14 +21,14 @@ with open(os.path.join(PROJECT_DIR, "data/stopwords.txt")) as fp:
     stopwords = map(lambda x: x[:-1], fp.readlines())
 
 
-#  TODO: Move to vikinlp #
-def strip_stopwords(question):
-    segs = jieba.cut(question, cut_all=False)
-    left_words = []
-    for seg in segs:
-        if seg not in stopwords:
-            left_words.append(seg)
-    return " ".join(left_words)
+def remove_stopwords(question):
+    rep = {}
+    for word in stopwords:
+        rep[word] = ''
+    rep = dict((re.escape(k), v) for k, v in rep.iteritems())
+    pattern = re.compile("|".join(rep.keys()))
+    q = pattern.sub(lambda m: rep[re.escape(m.group(0))], question)
+    return q
 
 
 class QuestionSearch(object):
@@ -51,7 +51,7 @@ class QuestionSearch(object):
                                           the label confidence.
 
         """
-        normalized_question = strip_stopwords(question)
+        normalized_question = remove_stopwords(question)
         objects = IntentQuestion.objects(domain=self.domain_id,
                                          question=normalized_question)
         return objects, 1
@@ -64,6 +64,7 @@ class QuestionSearch(object):
         label_data : [(label, question, treenode), ..], labeld question
 
         """
+        assert(label_data)
         IntentQuestion.objects(domain=self.domain_id).delete()
         IntentTreeNode.objects(domain=self.domain_id).delete()
         db_questions = []
@@ -71,7 +72,7 @@ class QuestionSearch(object):
         label_treenode = set()
         for td in label_data:
             td = LabelData(label=td[0], question=td[1], treenode=td[2])
-            normalized_question = strip_stopwords(td.question)
+            normalized_question = remove_stopwords(td.question)
             db_questions.append(
                 IntentQuestion(domain=self.domain_id, treenode=td.treenode,
                                label=td.label, question=normalized_question))

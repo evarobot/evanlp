@@ -64,8 +64,11 @@ class NLURobot(object):
 
         }
         """
-        #  TODO: label_data check
         label_data = cms_gate.get_tree_label_data(self.domain_id)
+        if not label_data:
+            return {
+                "intents": []
+            }
         ret = self._intent.train(self.domain_id, label_data)
         return ret
 
