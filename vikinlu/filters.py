@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import json
 from vikinlu.util import cms_gate
 from vikinlu.model import IntentQuestion
 
