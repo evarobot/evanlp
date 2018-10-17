@@ -149,8 +149,8 @@ class IntentRecognizer(object):
 
         """
         objects, confidence = self._biz_chat_classifier.predict(question)
-        if objects[0].label == 'casual_talk':
-            return (objects[0].label, confidence, None)
+        if not objects or objects[0].label == 'casual_talk':
+            return ('casual_talk', confidence, None)
         objects, confidence = self._biz_classifier.predict(question)
         label, node_id = self._get_valid_intent(context, objects)
         return (label, confidence, node_id)
