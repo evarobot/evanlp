@@ -8,3 +8,4 @@ flask-mongoengine
 Flask-SQLAlchemy==2.3.2
 requests
 gunicorn
+pandas
