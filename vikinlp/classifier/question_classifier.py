@@ -83,16 +83,17 @@ class LogisticRegressionClassifier(QuestionClassfier):
 
         # summary
         #  TODO: 每个类别20% #
-        x_train, x_test, y_train, y_test = train_test_split(
-            x, y, test_size=self._test_size)
+
+        import pandas
+        from vikinlp.ai_toolkit.preprocess import cv_producer
+        data = pandas.DataFrame({"Feature": x,"Label": y})
+        x_train, x_test, y_train, y_test = cv_producer.split_data(data, 0.3, "Feature", "Label", )
         feature_data, model_data = self._train(x_train, y_train)
         x_test2 = self.features.transform(x_test)
         summary = self.model_statistics(x_test2, y_test, self.model)
 
         # save model
         self.feature, self.model = self._train(x, y)
-        import pdb
-        pdb.set_trace()
         return summary
 
     def _train(self, x_train, y_train):
