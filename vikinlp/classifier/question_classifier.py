@@ -28,7 +28,6 @@ def readfile(path):
 stop_words_file = os.path.join(PROJECT_DIR, "data/stopwords.txt")
 stop_words = readfile(stop_words_file).splitlines()
 
-
 def strip_stopwords(question):
     segs = jieba.cut(question, cut_all=False)
     left_words = []
@@ -92,6 +91,8 @@ class LogisticRegressionClassifier(QuestionClassfier):
 
         # save model
         self.feature, self.model = self._train(x, y)
+        import pdb
+        pdb.set_trace()
         return summary
 
     def _train(self, x_train, y_train):

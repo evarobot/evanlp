@@ -83,7 +83,6 @@ class IntentRecognizer(object):
         self._strict_classifier.train(label_data)
         biz_statics = self._biz_classifier.train(label_data)
         biz_chat_statics = self._biz_chat_classifier.train(label_data)
-
         label_question = {}
         label_question_count = {}
         for record in label_data:
