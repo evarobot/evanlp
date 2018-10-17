@@ -1,9 +1,17 @@
+from datetime import datetime as dt
+
 import vikinlp.ner.time_custom as time_custom
 import vikinlp.ner.time_standard as time_standard
+
+
+def fix_time():
+    return dt(2018, 10, 10, hour=0, minute=0, second=0)
+
 
 if __name__ == '__main__':
     date_recognizer = time_standard.TimeEntity()
     date_custom_recognizer = time_custom.CustomTimeEntity()
+    date_custom_recognizer.get_now = fix_time
 
     # 单例测试
     # text1 = '30秒之后提醒我'

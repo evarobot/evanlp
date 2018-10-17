@@ -1,5 +1,4 @@
 import re
-from datetime import datetime as dt
 from datetime import datetime,timedelta
 
 import jieba.posseg as psg
@@ -24,8 +23,7 @@ class CustomTimeEntity():
 
     @staticmethod
     def get_now():
-        # return datetime.today()
-        return dt(2018, 10, 10, hour=0, minute=0, second=0)
+        return datetime.today()
 
     def __init__(self):
         jieba.add_word("分", freq=99999999, tag="m")
