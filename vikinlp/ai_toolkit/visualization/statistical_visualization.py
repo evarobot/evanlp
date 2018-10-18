@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# encoding: utf-8
 import copy
 
+import matplotlib.pyplot as plt
 import nltk
 
 from vikinlp.ai_toolkit.util import zh

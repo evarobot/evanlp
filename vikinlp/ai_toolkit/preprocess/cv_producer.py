@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# encoding: utf-8
 from sklearn.model_selection import train_test_split
 from pandas.core.frame import DataFrame
+import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
 

@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# encoding: utf-8
 import pandas as pd
+import xlrd
 import jieba
 
 from vikinlp.ai_toolkit.util.sys import remove_folder, file_list

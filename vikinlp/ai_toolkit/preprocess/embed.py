@@ -1,11 +1,12 @@
-#!/usr/bin/env python
-# encoding: utf-8
 import pickle
 import copy
 
 from pandas.core.frame import DataFrame
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import numpy as np
+from keras.preprocessing.text import Tokenizer
+from keras.utils import to_categorical
+from vikinlp.ai_toolkit.visualization import ml_visualization
 
 
 def bow(list_text):

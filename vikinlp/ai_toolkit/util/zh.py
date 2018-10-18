@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# encoding: utf-8
 import re
 
+import matplotlib.pyplot as plt
 
 
 def str_q2b(ustring):
