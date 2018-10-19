@@ -1,6 +1,6 @@
 import copy
 from abc import abstractmethod
-import logging
+import logging as log
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,6 @@ from vikinlp.ai_toolkit.evaluation import f1_score
 import vikinlp.io as io
 
 
-log = logging.getLogger(__name__)
 
 
 class QuestionClassfier(object):
@@ -193,9 +192,6 @@ class QuestionClassfier(object):
         print("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f"
               % (accuracy, precision, recall, f1))
 
-
-
-        print("特征\t表现\t模型预测标签")
         for i in range(0, len(x)):
             if lst_true_label[i] != lst_predicted_label[i]:
                 # 深度学习模型输入的x是已经编码化后的序列
@@ -207,10 +203,10 @@ class QuestionClassfier(object):
                 print(text, "\t", lst_true_label[i],
                       "\t", lst_predicted_label[i])
 
-        log.info("*" * 30)
-        log.info("Model Precise: {0}".format(precision))
+        print("*" * 30)
+        print("Model Precise: {0}".format(precision))
         matrix = metrics.confusion_matrix(lst_true_label, lst_predicted_label)
-        log.info(matrix)
+        print(matrix)
         report = metrics.precision_recall_fscore_support(lst_true_label,
                                                          lst_predicted_label)
         labels = sorted(set(lst_true_label))

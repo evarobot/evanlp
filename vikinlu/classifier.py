@@ -2,7 +2,6 @@
 # encoding: utf-8
 import logging
 import os
-import re
 import pandas
 
 from collections import namedtuple
@@ -23,13 +22,11 @@ with open(os.path.join(PROJECT_DIR, "data/stopwords.txt")) as fp:
 
 
 def remove_stopwords(question):
-    rep = {}
-    for word in stopwords:
-        rep[word.decode('utf8')] = ''
-    rep = dict((re.escape(k), v) for k, v in rep.iteritems())
-    pattern = re.compile("|".join(rep.keys()))
-    q = pattern.sub(lambda m: rep[re.escape(m.group(0))], question)
-    return q
+    words = []
+    for w in question:
+        if w not in stopwords:
+            words.append(w)
+    return ''.join(words)
 
 
 class QuestionSearch(object):
