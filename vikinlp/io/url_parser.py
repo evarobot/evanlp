@@ -314,6 +314,6 @@ def find(resource_name, paths=None):
 
 
 if __name__ == '__main__':
-    print normalize_resource_url("vikinlp:hello\ok")
-    print resource_url("vikinlp:hello/ok")
-    print resource_url("file:hello/ok")
+    print(normalize_resource_url("vikinlp:hello\ok"))
+    print(resource_url("vikinlp:hello/ok"))
+    print(resource_url("file:hello/ok"))

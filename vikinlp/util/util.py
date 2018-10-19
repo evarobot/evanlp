@@ -5,7 +5,7 @@
 import re
 import collections
 import os
-from langconv import Converter
+from vikinlp.util.langconv import Converter
 
 PROJECT_DIR = os.path.realpath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)), '../../'))
@@ -117,7 +117,7 @@ dict ={u'零': 0, u'一': 1, u'二': 2, u'俩': 2, u'两': 2, u'三': 3, u'四':
 
 
 def cn2digit(a, encoding="utf-8"):
-    m = re.search(ur"(\d)*", a)
+    m = re.search(r"(\d)*", a)
     if m and m.group() == a:
         return a
     if isinstance(a, str):
@@ -158,5 +158,5 @@ def cn2digit(a, encoding="utf-8"):
 
 
 if __name__ == '__main__':
-    print cn2digit("一千三百")
-    print cn2digit("零点三")  # 不支持
+    print(cn2digit("一千三百"))
+    print(cn2digit("零点三"))  # 不支持

@@ -9,10 +9,7 @@ try:
 except ImportError:
     pass
 
-try:
-    from zh_wiki import zh2Hant, zh2Hans
-except ImportError:
-    from zhtools.zh_wiki import zh2Hant, zh2Hans
+from vikinlp.util.zh_wiki import zh2Hant, zh2Hans
 
 import sys
 py3k = sys.version_info >= (3, 0, 0)

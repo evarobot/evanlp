@@ -3,6 +3,7 @@
 import logging
 import os
 import re
+import pandas
 
 from collections import namedtuple
 from vikinlu.config import ConfigData
@@ -107,10 +108,20 @@ class FuzzyClassifier(object):
 
         """
         # save fuzzy model
-        summary = self._classifier.train(label_data)
+        self._classifier.embed_mode = "bow"
+        tmp = zip(*label_data)
+        tmp = list(tmp)
+        y = tmp[0]
+        x = tmp[1]
+        self._classifier.data = pandas.DataFrame({"Feature": x,
+                                                  "Label": y})
+        self._classifier.split_data("Feature", "Label", 0.3, 0.5)
+        summary = self._classifier.train(x=self._classifier.x_train,
+                                         y=self._classifier.y_train)
+
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
-        self._classifier.save_model(model_fname)
+        self._classifier.save_model(self._classifier.clf, model_fname)
         return summary
 
     def predict(self, question):
@@ -159,7 +170,7 @@ class BizChatClassifier(FuzzyClassifier):
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         summary = super(BizChatClassifier, self).train(biz_chat_data)
-        self._classifier.save_model(model_fname)
+        self._classifier.save_model(self._classifier.clf, model_fname)
         return summary
 
     def _load_chat_label_data(self):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import json
 import logging
 import jieba
 
@@ -105,7 +106,7 @@ class IntentRecognizer(object):
                 }
             ]
         }
-        for label, precise in biz_statics["class_precise"].iteritems():
+        for label, precise in biz_statics["class_precise"].items():
             ret["intents"].append({
                 "label": label,
                 "count": label_question_count[label],

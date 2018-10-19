@@ -29,7 +29,7 @@ class TimeEntity(object):
         u'千': 1000,
         u'万': 10000,
     }
-    numbers = cn_num_map.values() + cn_num_map.keys() + [u'十']
+    # numbers = cn_num_map.values() + cn_num_map.keys() + [u'十']
 
     @classmethod
     def recognize(self, text):
@@ -75,7 +75,7 @@ class TimeEntity(object):
         if msg is None or len(msg) == 0:
             return None
         # 一个括号表示一个group, 全是带？号的，所以无法匹配子串。
-        m = re.search(ur"([0-9零一二两三四五六七八九十]+年)?\
+        m = re.search(r"([0-9零一二两三四五六七八九十]+年)?\
                       ([0-9零一二两三四五六七八九十]+月)?\
                       ([0-9一二两三四五六七八九十]+[号日])?\
                       ([上下午晚早今天明天后天]+)?\

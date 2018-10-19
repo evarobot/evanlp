@@ -100,7 +100,6 @@ class _Config:
         return debug if debug is not None else self._debug
 
 
-
 ConfigMongo = _ConfigMongo()
 ConfigLog = _ConfigLog()
 ConfigData = _ConfigData()

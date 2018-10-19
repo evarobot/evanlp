@@ -65,7 +65,7 @@ def _create_mock_label_data():
             i += 1
         item_copy = copy.deepcopy(item)
         item.insert(0, str(i))
-        u_item = map(lambda x:x.decode("utf-8"),item)
+        u_item = map(lambda x:x, item)
         u_item = tuple(u_item)
         mock_label_list.append(LabelData(treenode=u_item[0],
                                          label=u_item[1],
@@ -221,4 +221,9 @@ class TestClassifier(object):
 
 
 if __name__ == '__main__':
-    assert(False)
+    test_slot_recognizer()
+    test_sensitive()
+    test_case = TestClassifier()
+    test_case.test_train()
+    test_case.test_intent()
+    assert(True)
