@@ -12,4 +12,6 @@ pandas
 matplotlib
 xlrd
 keras
+matplotlib
+mock
 
