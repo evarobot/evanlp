@@ -5,3 +5,6 @@ sklearn
 nltk
 flask
 flask-mongoengine
+xlrd
+keras
+lime
