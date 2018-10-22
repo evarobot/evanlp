@@ -33,8 +33,6 @@ class KeyWordEntity(object):
                 negative_words.append(word[1:])
             else:
                 postive_words.append(word)
-        if isinstance(text, list):
-            return list(set(text).intersection(set(cluewords)))
         if isinstance(cluewords, list):
             postive_words = u'|'.join(postive_words)
             negative_words = u'|'.join(negative_words)
@@ -43,5 +41,6 @@ class KeyWordEntity(object):
         if negative_words:
             neg = re.findall(negative_words, text)
         if not neg:
+            # 如果没有遇到黑名单中的词，返回识别到的关键字
             return pos
         return []
