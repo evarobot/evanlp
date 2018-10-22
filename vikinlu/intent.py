@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import json
-import logging
+import logging as log
 import jieba
 
 from vikinlu.util import cms_gate
 from vikinlu.classifier import QuestionSearch,\
     FuzzyClassifier, BizChatClassifier
-log = logging.getLogger(__name__)
+
 
 
 class IntentRecognizer(object):
@@ -84,7 +83,6 @@ class IntentRecognizer(object):
         self._strict_classifier.train(label_data)
         biz_statics = self._biz_classifier.train(label_data)
         biz_chat_statics = self._biz_chat_classifier.train(label_data)
-
         label_question = {}
         label_question_count = {}
         for record in label_data:
@@ -150,8 +148,8 @@ class IntentRecognizer(object):
 
         """
         objects, confidence = self._biz_chat_classifier.predict(question)
-        if objects[0].label == 'casual_talk':
-            return (objects[0].label, confidence, None)
+        if not objects or objects[0].label == 'casual_talk':
+            return ('casual_talk', confidence, None)
         objects, confidence = self._biz_classifier.predict(question)
         label, node_id = self._get_valid_intent(context, objects)
         return (label, confidence, node_id)

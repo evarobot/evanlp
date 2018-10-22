@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 import logging
-import json
 import mongoengine
 import mock
 import copy
@@ -10,23 +9,36 @@ from collections import namedtuple
 import os
 
 from vikicommon.log import init_logger
+from vikinlu.model import IntentQuestion
+from vikinlu.classifier import remove_stopwords
 from vikinlu.config import ConfigMongo, ConfigLog
 from vikinlu.filters import Sensitive
 from vikinlu.slot import SlotRecognizer
 from vikinlu.robot import NLURobot
 from vikinlu.util import cms_gate, PROJECT_DIR
 from vikinlu.model import clear_intent_question
-import helper
 
 LabelData = namedtuple("LabelData", "label, question, treenode")
 init_logger(level="DEBUG", path=ConfigLog.log_path)
 log = logging.getLogger(__name__)
 dm_robot_id = "12345"
 
-mongoengine.connect(db=ConfigMongo.database,
+mongoengine.connect(db=ConfigMongo.db,
                     host=ConfigMongo.host,
                     port=ConfigMongo.port)
 log.info('连接Mongo开发测试环境[eve数据库]成功!')
+
+
+def assert_intent_question(domain_id, label_data):
+    intent_questions = IntentQuestion.objects(domain=domain_id)
+    db_data = set()
+    for db_obj in intent_questions:
+        db_data.add((db_obj.treenode, db_obj.label,
+                     db_obj.question))
+    for tuple_obj in label_data:
+        tuple_obj = (int(tuple_obj.treenode), tuple_obj.label,
+                     remove_stopwords(tuple_obj.question))
+        assert(tuple_obj in db_data)
 
 
 def mock_get_slot_values_for_nlu(slot_id):
@@ -35,14 +47,14 @@ def mock_get_slot_values_for_nlu(slot_id):
         'data': {
             'values': [
                 {
-                    'name': u'周黑鸭',
-                    'words': [u'鸭鸭', u'鸭翅', u'-小鸭鸭', u'-小鸭翅'],
+                    'name': '周黑鸭',
+                    'words': ['鸭鸭', '鸭翅', '-小鸭鸭', '-小鸭翅'],
                     'update_time': '2018-03-03'
                 },
 
                 {
-                    'name': u'耐克',
-                    'words': [u'耐克'],
+                    'name': '耐克',
+                    'words': ['耐克'],
                     'update_time': '2018-03-03'
                 }
             ]
@@ -81,7 +93,7 @@ cms_gate.get_tree_label_data = mock.Mock(
 cms_gate.get_filter_words = mock.Mock(return_value={
     'code': 0,
     'data': {
-        'words': [u"共产党", u"毛泽东", u"法轮功"]
+        'words': ["共产党", "毛泽东", "法轮功"]
     }
 })
 
@@ -92,8 +104,8 @@ cms_gate.get_domain_slots = mock.Mock(return_value={
             'name': 'location',
             'id': 'slot_id',
             'values': {
-                'id1': u'周黑鸭',
-                'id2': u'耐克'
+                'id1': '周黑鸭',
+                'id2': '耐克'
             }
         }
     ]
@@ -107,12 +119,12 @@ cms_gate.get_domain_values = mock.Mock(return_value={
     'values': [
         {
             'id': 'id1',
-            "name": u'周黑鸭',
-            "words": [u'鸭鸭', u'鸭翅', u'-小鸭鸭', u'-小鸭翅'],
+            "name": '周黑鸭',
+            "words": ['鸭鸭', '鸭翅', '-小鸭鸭', '-小鸭翅'],
         },
         {
             'id': 'id2',
-            "name": u'耐克',
+            "name": '耐克',
             "words": [],
         }
     ]
@@ -129,36 +141,36 @@ def _create_mock_context(mock_label_data):
 def test_sensitive():
     domain_id = "C"
     sensitive = Sensitive.get_sensitive(domain_id)
-    assert(set(sensitive._words) == set([u"共产党", u"毛泽东", u"法轮功"]))
-    assert(sensitive.detect(u'共产党万岁') == True)
-    assert(sensitive.detect(u'你叫什么') == False)
+    assert(set(sensitive._words) == set(["共产党", "毛泽东", "法轮功"]))
+    assert(sensitive.detect('共产党万岁') == True)
+    assert(sensitive.detect('你叫什么') == False)
 
 
 def test_slot_recognizer():
     domain_id = "C"
     slot = SlotRecognizer.get_slot_recognizer(domain_id)
     where_query = [
-        u'耐克店怎么走？',
+        '耐克店怎么走？',
     ]
     where_query2 = [
-        u'周黑鸭怎么走？',
-        u'鸭鸭怎么走？',
-        u'鸭翅怎么走？',
-        u'小鸭鸭怎么走？',
-        u'小鸭翅怎么走？',
+        '周黑鸭怎么走？',
+        '鸭鸭怎么走？',
+        '鸭翅怎么走？',
+        '小鸭鸭怎么走？',
+        '小鸭翅怎么走？',
     ]
     name_query = [
-        u'你叫什么名字',
+        '你叫什么名字',
     ]
     for question in where_query:
         ret = slot.recognize(question, ['location'])
-        assert(ret == {u"location": u"耐克"})
+        assert(ret == {"location": "耐克"})
     for question in where_query2:
         ret = slot.recognize(question, ['location'])
-        if u'小鸭鸭' in question or u'小鸭翅' in question:
+        if '小鸭鸭' in question or '小鸭翅' in question:
             assert(ret == {})
         else:
-            assert(ret == {u"location": u"周黑鸭"})
+            assert(ret == {"location": u"周黑鸭"})
     for question in name_query:
         ret = slot.recognize(question, ['location'])
         assert(ret == {})
@@ -173,11 +185,11 @@ class TestClassifier(object):
     nlurobot = None
 
     def test_train(self):
-        clear_intent_question("A")
-        domain_id = "A"
+        clear_intent_question("C")
+        domain_id = "C"
         TestClassifier.nlurobot = NLURobot.get_robot(domain_id)
         TestClassifier.nlurobot.train(("logistic", "0.1"))
-        helper.assert_intent_question(domain_id, mock_label_data)
+        assert_intent_question(domain_id, mock_label_data)
 
     def test_intent(self):
         self.mock_context = _create_mock_context(mock_label_data)

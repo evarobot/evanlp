@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import re
+from flashtext import KeywordProcessor
 
 
 class KeyWordEntity(object):
@@ -26,22 +26,26 @@ class KeyWordEntity(object):
 
     @classmethod
     def _recognize_with_rules(self, text, cluewords):
-        postive_words = []
-        negative_words = []
+        flag_negative = False
+        pos_processor = KeywordProcessor()
+        neg_processor = KeywordProcessor()
+
         for word in cluewords:
             if word.startswith('-'):
-                negative_words.append(word[1:])
+                neg_processor.add_keyword(word[1:])
+                flag_negative = True
             else:
-                postive_words.append(word)
+                pos_processor.add_keyword(word)
         if isinstance(text, list):
             return list(set(text).intersection(set(cluewords)))
-        if isinstance(cluewords, list):
-            postive_words = u'|'.join(postive_words)
-            negative_words = u'|'.join(negative_words)
+
         neg = []
-        pos = re.findall(postive_words, text)
-        if negative_words:
-            neg = re.findall(negative_words, text)
+        pos = pos_processor.extract_keywords(text)
+
+        if flag_negative:
+            neg = neg_processor.extract_keywords(text)
+
         if not neg:
+            # 如果没有遇到黑名单中的词，返回识别到的关键字
             return pos
         return []

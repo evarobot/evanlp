@@ -64,8 +64,11 @@ class NLURobot(object):
 
         }
         """
-        #  TODO: label_data check
         label_data = cms_gate.get_tree_label_data(self.domain_id)
+        if not label_data:
+            return {
+                "intents": []
+            }
         ret = self._intent.train(self.domain_id, label_data)
         return ret
 
@@ -86,7 +89,7 @@ class NLURobot(object):
         log.info("----------------%s------------------" % question)
         intent, confidence, node_id = self._intent_classify(context, question)
         d_slots = {}
-        if intent and intent not in ["sensitive", "casual_talk"]:
+        if intent and intent not in ["sensitive", "casual_talk", "nonsense"]:
             # d_slots = self._slot.recognize(question, context["valid_slots"])
             # OPTIMIZE: Cache #
             ret = cms_gate.get_intent_slots_without_value(

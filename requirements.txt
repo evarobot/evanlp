@@ -5,3 +5,13 @@ sklearn
 nltk
 flask
 flask-mongoengine
+Flask-SQLAlchemy==2.3.2
+requests
+gunicorn
+pandas
+matplotlib
+xlrd
+keras
+matplotlib
+mock
+flashtext
