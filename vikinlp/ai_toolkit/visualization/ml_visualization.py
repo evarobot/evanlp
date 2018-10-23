@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from vikinlp.ai_toolkit.feeder import NLPFeeder
 from vikinlp.ai_toolkit.visualization import statistical_visualization
 from vikinlp.ai_toolkit.preprocess import embed
+from vikinlp.ai_toolkit.util import ai_log
 
 
 @statistical_visualization.aggregate_text
@@ -58,11 +59,11 @@ def pca(input_data, list_color, component):
     pca_estimator.fit(input_data)
 
     # 每个纬度的数值分布方差值
-    print(pca_estimator.explained_variance_)
+    ai_log.save_text(pca_estimator.explained_variance_)
     # 每个纬度的方差占所有纬度方差的比率
-    print(pca_estimator.explained_variance_ratio_)
+    ai_log.save_text(pca_estimator.explained_variance_ratio_)
     # 当前PCA模型的降纬后纬度值
-    print(pca_estimator.n_components_)
+    ai_log.save_text(pca_estimator.n_components_)
 
     input_transformed = pca_estimator.transform(input_data)
 
@@ -77,7 +78,7 @@ def pca(input_data, list_color, component):
                     input_transformed[:, 2], marker='o', c=list_color)
         plt.show()
     else:
-        print("Unable to draw.")
+        ai_log.save_text("Unable to draw.")
 
 
 def explore_guangkai():
@@ -85,7 +86,7 @@ def explore_guangkai():
     data = NLPFeeder.read_file("../input/big_guangkai.txt", '@', '$',
                                ["意图", "问题"])
 
-    print(data.describe())
+    ai_log.save_text(data.describe())
     data.drop_duplicates(inplace=True)
 
     list_label = construct_label(data, "意图")

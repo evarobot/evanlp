@@ -8,12 +8,13 @@ from keras.preprocessing.sequence import pad_sequences
 
 from vikinlp.ai_toolkit.preprocess import embed
 from vikinlp.ai_toolkit.inspection import model_based_not_w2v
-
+from vikinlp.ai_toolkit.util import ai_log
 
 word2vec = None
 clf = None
 g_tokenizer = None
 MAX_SEQUENCE_LENGTH = 0
+
 
 def explain_one_instance(instance, class_names, top_label, classifier,
                          vocab, max_sequence_length):
@@ -35,7 +36,7 @@ def explain_one_instance(instance, class_names, top_label, classifier,
 
     predicated_class_name = classifier.predict(vectorized_example)[0]
     # a = class_names
-    print("Predicated Class: " + predicated_class_name)
+    ai_log.save_text("Predicated Class: " + predicated_class_name)
 
     # 如果模型预测错误，需要分析为什么会预测到这个标签
     predicated_class = class_names.index(predicated_class_name)
@@ -50,9 +51,10 @@ def explain_one_instance(instance, class_names, top_label, classifier,
 
 
 def visualize_one_exp(feature, label, class_names, classifier, vocab,
-                      tokenizer=None, output_path=None, max_sequence_length=10):
-    # print('Index: %d' % index)
-    # print('Context: '+ str(features[index]))
+                      tokenizer=None, output_path=None,
+                      max_sequence_length=10):
+    # ai_log.save_text('Index: %d' % index)
+    # ai_log.save_text('Context: '+ str(features[index]))
     # 一定要做这一步，因为word2vec_pipeline需要这两个变量，但是又没有办法直接传入函数
     global word2vec, clf, g_tokenizer
     word2vec = vocab
@@ -63,10 +65,7 @@ def visualize_one_exp(feature, label, class_names, classifier, vocab,
                                label,
                                classifier, vocab, max_sequence_length)
 
-    # exp.as_pyplot_figure(label=0)
-    # plt.show()
-
-    print('Labeled Class: %s' % class_names[label])
+    ai_log.save_text('Labeled Class: %s' % class_names[label])
     if output_path is not None:
         exp.save_to_file(output_path)
 
@@ -102,7 +101,7 @@ def get_statistical_explanation(test_set, sample_size, fun, vocab, classifier):
     global word2vec, clf
     word2vec = vocab
     clf = classifier
-    print(len(test_set))
+    ai_log.save_text(len(test_set))
     sample_sentences = random.sample(test_set, sample_size)
     explainer = LimeTextExplainer()
 
@@ -126,8 +125,8 @@ def get_statistical_explanation(test_set, sample_size, fun, vocab, classifier):
             else:
                 contributors[curr_label][word] = [contributing_weight]
 
-    print(contributors[1])
-    print("=====")
+    ai_log.save_text(contributors[1])
+    ai_log.save_text("=====")
     average_contributions = {}
     sorted_contributions = {}
     for label, lexica in contributors.items():
@@ -159,8 +158,8 @@ def plot_statistical_explanation(test_set, sample_size, fun,
         label_dict[item] = i
         i += 1
 
-    print(label_list)
-    print(sorted_contributions)
+    ai_log.save_text(label_list)
+    ai_log.save_text(sorted_contributions)
     signal = ""
     while signal != "quit":
         class_name_text = input("Please intput class name:")

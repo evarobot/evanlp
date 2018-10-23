@@ -35,10 +35,17 @@ class KeyWordEntity(object):
                 neg_processor.add_keyword(word[1:])
                 flag_negative = True
             else:
+<<<<<<< HEAD
                 pos_processor.add_keyword(word)
         if isinstance(text, list):
             return list(set(text).intersection(set(cluewords)))
 
+=======
+                postive_words.append(word)
+        if isinstance(cluewords, list):
+            postive_words = u'|'.join(postive_words)
+            negative_words = u'|'.join(negative_words)
+>>>>>>> py3
         neg = []
         pos = pos_processor.extract_keywords(text)
 

@@ -15,3 +15,5 @@ keras
 matplotlib
 mock
 flashtext
+tensorflow
+lime

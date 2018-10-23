@@ -7,6 +7,7 @@ import pickle
 from vikinlp.ai_toolkit.visualization import ml_visualization,\
     statistical_visualization
 from vikinlp.ai_toolkit.util import zh
+from vikinlp.ai_toolkit.util import ai_log
 
 
 def exclude_label_sample(df_complete, insufficient_label, label_name):
@@ -41,16 +42,29 @@ def split_data(input_data, cv_ratio, feature_name, label_name):
                                                                 ""],
                                                                False)
     if len(insufficient_label) > 0:
-        print("Warning: Insufficient Observations. ")
+        ai_log.save_text("Warning: Insufficient Observations. ")
 
     sufficient_sample, insufficient_sample \
         = exclude_label_sample(input_data, insufficient_label, label_name)
     list_corpus = sufficient_sample[feature_name].tolist()
     list_labels = sufficient_sample[label_name].tolist()
     # 先按比例抽取30%的数据作为[Validation+Test]
-    x_train, x_valid, y_train, y_valid\
-        = train_test_split(list_corpus, list_labels, test_size=cv_ratio,
-                           stratify=list_labels, shuffle=True)
+
+    if cv_ratio > 0:
+        x_train, x_valid, y_train, y_valid\
+            = train_test_split(list_corpus, list_labels, test_size=cv_ratio,
+                               stratify=list_labels, shuffle=True)
+    else:
+        x_train, x_valid, y_train, y_valid \
+            = train_test_split(list_corpus, list_labels, test_size=cv_ratio,
+                               shuffle=True)
+    # else:
+    #     x_train = list_corpus
+    #     y_train = list_labels
+    #     x_valid = []
+    #     y_valid = []
+    #     return x_train, x_valid, y_train, y_valid
+
     list_corpus = insufficient_sample[feature_name].tolist()
     list_labels = insufficient_sample[label_name].tolist()
     x_train += list_corpus
@@ -62,35 +76,48 @@ def split_data(input_data, cv_ratio, feature_name, label_name):
     balance_sample(x_train, y_train, x_valid, y_valid)
     balance_sample(x_valid, y_valid, x_train, y_train)
 
+    if cv_ratio <= 0:
+        x_train += x_valid
+        y_train += y_valid
+
     return x_train, x_valid, y_train, y_valid
 
 
-def validate_distribution(list_dataset, feature_name, label_name):
+def validate_distribution(list_dataset, feature_name, label_name,
+                          is_display=False):
     # 验证生成数据的标签同比例特性
     i = 1
     for item in list_dataset:
-        plt.subplot(220+i)
+        if is_display:
+            plt.subplot(220+i)
         i += 1
         combination = {label_name: item[0], feature_name: item[1]}
         data_visualization = DataFrame(combination)
         statistical_visualization.group_label(data_visualization,
                                               label_name, feature_name,
-                                              [label_name, "Count"])
+                                              [label_name, "Count"], is_display)
 
 
-def dump_dataset(data, feature_name, label_name, train_untrain_rate, valid_test_rate, dump_file=None):
+def dump_dataset(data, feature_name, label_name, train_untrain_rate,
+                 valid_test_rate, dump_file=None):
     list_label = ml_visualization.get_distinct_label(data, label_name)
     # label要以统一的[文本-数字编号]对来进行切换
     digital_label = ml_visualization.construct_label(data, label_name)
-    # # 将文本类别名转换为数字类别名
-    # print(to_categorical(np.asarray(digital_label)))
+    # 将文本类别名转换为数字类别名
     data[label_name] = digital_label
+
+    # 将上面得到的validation集合划分一部分出来作为test
     x_train, x_valid, y_train, y_valid = split_data(data, train_untrain_rate,
                                                     feature_name, label_name)
-    # 将上面得到的validation集合划分一部分出来作为test
-    data_valid = DataFrame({label_name: y_valid, feature_name: x_valid})
-    x_valid, x_test, y_valid, y_test = split_data(data_valid, valid_test_rate,
-                                                  feature_name, label_name)
+    if valid_test_rate > 0:
+
+        data_valid = DataFrame({label_name: y_valid, feature_name: x_valid})
+        x_valid, x_test, y_valid, y_test = split_data(data_valid,
+                                                      valid_test_rate,
+                                                      feature_name, label_name)
+    else:
+        x_valid, x_test, y_valid, y_test = [x_train[-1]], [x_train[-1]],\
+                                            [y_train[-1]], [y_train[-1]]
 
     if dump_file is not None:
         with open(dump_file + ".pkl", "wb") as f:
@@ -125,13 +152,10 @@ if __name__ == '__main__':
     #         = pickle.load(f)
 
     # x_train, x_valid, y_train, y_valid = split_data(data, 0.3)
-    # # print(len(x_train), len(x_valid))
     #
     # data_valid = DataFrame({"意图": y_valid, "问题": x_valid})
-    # # print(len(data_valid))
     #
     # x_valid, x_test, y_valid, y_test = split_data(data_valid, 0.5)
-    # # print(len(x_valid), len(x_test))
     #
     # 验证生成数据的标签同比例特性
     # validate_distribution([(y_train, x_train), (y_valid, x_valid),
