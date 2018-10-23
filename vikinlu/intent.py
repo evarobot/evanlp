@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import logging as log
+import logging
 import jieba
 
 from vikinlu.util import cms_gate
 from vikinlu.classifier import QuestionSearch,\
     FuzzyClassifier, BizChatClassifier
 
+log = logging.getLogger(__name__)
 
 
 class IntentRecognizer(object):

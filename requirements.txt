@@ -12,6 +12,7 @@ pandas
 matplotlib
 xlrd
 keras
-matplotlib
 mock
-
+lime
+flashtext
+tensorflow
