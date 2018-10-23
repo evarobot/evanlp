@@ -3,6 +3,7 @@ import xlrd
 import jieba
 
 from vikinlp.ai_toolkit.util.sys import remove_folder, file_list
+from vikinlp.ai_toolkit.util import ai_log
 
 
 def read_file(input_path, separator1, separator2, column_name):
@@ -13,10 +14,9 @@ def read_file(input_path, separator1, separator2, column_name):
 
 def read_xls(input_path, output_path, str_separator):
     excel_file = xlrd.open_workbook(input_path)
-    print(excel_file.sheet_names())
+    ai_log.save_text(excel_file.sheet_names())
     sheet = excel_file.sheet_by_index(0)
-    print(sheet.name, sheet.nrows, sheet.ncols)
-
+    ai_log.save_text(sheet.name, sheet.nrows, sheet.ncols)
     label_name = ""
     for i in range(1, sheet.nrows):
         row = sheet.row_values(i)
@@ -24,10 +24,7 @@ def read_xls(input_path, output_path, str_separator):
         if row[0] != "":
             if row[1] != "":
                 label_name = row[1]
-
-            if row[0].find(".") == -1:
-                print("Error:" + row[0])
-            context = row[0].split(".")[1].strip()
+            context = row[0]
 
             # 通过结巴分词的全模式对文本内容进行分词
             acc_context = ' '.join(jieba.cut(context, cut_all=False))
@@ -36,8 +33,25 @@ def read_xls(input_path, output_path, str_separator):
                 f.write(label_name + str_separator + acc_context + "\n")
 
 
+def read_xls_by_sheet(input_path, output_path, str_separator):
+    excel_file = xlrd.open_workbook(input_path)
+    sheet_name = excel_file.sheet_names()
+
+    for single_sheet in sheet_name:
+        sheet = excel_file.sheet_by_name(single_sheet)
+
+        ai_log.save_text(sheet.name, sheet.nrows, sheet.ncols)
+
+        for i in range(1, sheet.nrows):
+            row = sheet.row_values(i)
+            context = row[0].strip()
+            # 通过结巴分词的全模式对文本内容进行分词
+            acc_context = ' '.join(jieba.cut(context, cut_all=False))
+            with open(output_path + single_sheet + "_non_rule.txt", 'a') as f:
+                f.write(single_sheet + str_separator + acc_context + "\n")
+
+
 def add_prefix(input_path, output_path, str_prefix, str_separator):
-    # lst_text = []
     with open(input_path, 'r') as f:
         lst_text = f.readlines()
 
@@ -61,7 +75,6 @@ def word2char(input_path, output_path, str_separator):
             lst_text = f.readlines()
 
         path_postfix = file_name.split("/")[-1]
-        # print(output_path + "/" + path_postfix)
         with open(output_path + "/" + path_postfix, 'w') as f:
             for item in lst_text:
 
@@ -71,16 +84,21 @@ def word2char(input_path, output_path, str_separator):
                 lst_char = []
                 for element in text_tmp:
                     lst_char.append(element)
-                f.write(sample[0] + str_separator + " ".join(lst_char).strip() + "\n")
+                f.write(sample[0] + str_separator + " ".join(lst_char).strip()
+                        + "\n")
 
 
 if __name__ == '__main__':
-    # output_dir = "../input/query_binary/"
+    output_dir = "../../data/query_binary_addition/"
     # remove_folder(output_dir)
-    # read_xls("../input/XiaodouLuo_query.xlsx", output_dir, "$@")
-    # add_prefix("/home/jichaojie/Bitmain/VikiNLU/data/query_origin/nature_voice_20181001.txt",
-    #            "/home/jichaojie/Bitmain/VikiNLU/data/query_origin/nature_voice_20181001_labeled.txt",
-    #            "nature_voice", "$@")
+    # read_xls("../../data/original_xls/XiaodouLuo_query.xlsx",
+    #          output_dir, "$@")
+    # read_xls_by_sheet("../../data/original_xls/意图数据_20181013.xlsx",
+    #                   output_dir, "$@")
+
+    # add_prefix("/home/jichaojie/Downloads/train_chat.txt",
+    #            "/home/jichaojie/Downloads/train_chat_labeled.txt",
+    #            "chat", "$@")
 
     word2char("/home/jichaojie/Bitmain/VikiNLU/data/query_origin",
               "/home/jichaojie/Bitmain/VikiNLU/data/query_origin_char", "$@")

@@ -7,6 +7,7 @@ import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
 from vikinlp.ai_toolkit.visualization import ml_visualization
+from vikinlp.ai_toolkit.util import ai_log
 
 
 def bow(list_text):
@@ -29,7 +30,7 @@ def read_w2v(path, topn, path_solidified=None):
     word_vector = {}
     iw = []
     wi = {}
-    print("Loading Vocabulary ...")
+    ai_log.save_text("Loading Vocabulary ...")
     if path_solidified is None:
         with open(path, encoding='utf-8', errors='ignore') as f:
             first_line = True
@@ -50,7 +51,7 @@ def read_w2v(path, topn, path_solidified=None):
     else:
         with open(path_solidified, "rb") as f:
             word_vector = pickle.load(f)
-    print("Loaded Vocabulary ...")
+    ai_log.save_text("Loaded Vocabulary ...")
     return word_vector
 
 
@@ -92,7 +93,7 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
     tokenizer.fit_on_texts(clean_questions["Column1"].tolist())
 
     word_index = tokenizer.word_index
-    print('Found %s unique tokens.' % len(word_index))
+    ai_log.save_text('Found %s unique tokens.' % len(word_index))
 
     # ====
     # 词典的确立
@@ -126,4 +127,4 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
 if __name__ == '__main__':
     w2v = read_w2v("/home/jichaojie/Bitmain/VikiNLU/data/sgns.baidubaike.bigram-char",
              200)
-    print(w2v["们"])
+    ai_log.save_text(w2v["们"])

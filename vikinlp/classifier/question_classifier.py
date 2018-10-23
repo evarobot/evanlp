@@ -1,6 +1,6 @@
 import copy
 from abc import abstractmethod
-import logging as log
+import logging
 
 import numpy as np
 import pandas as pd
@@ -20,8 +20,7 @@ from vikinlp.ai_toolkit.inspection import statistics_based, \
 from vikinlp.ai_toolkit.evaluation import f1_score
 import vikinlp.io as io
 
-
-
+log = logging.getLogger(__name__)
 
 class QuestionClassfier(object):
     def __init__(self, data=None):
@@ -40,14 +39,14 @@ class QuestionClassfier(object):
         self.actual_model = None
 
     @classmethod
-    def get_classifier(self, algorithm):
+    def get_classifier(cls, algorithm):
         if algorithm == "logistic":
             return LogisticRegressionClassifier()
 
     def split_data(self, feature_name, label_name, train_untrain_rate,
                    valid_test_rate, str_path=None):
         self.x_train, self.y_train, self.x_valid, self.y_valid, \
-        self.x_test, self.y_test, self.lst_label \
+            self.x_test, self.y_test, self.lst_label \
             = cv_producer.dump_dataset(self.data, feature_name,
                                        label_name, train_untrain_rate,
                                        valid_test_rate, str_path)
@@ -76,17 +75,16 @@ class QuestionClassfier(object):
         str_label_name = lst_column_name[0]
         str_feature_name = lst_column_name[1]
 
-        print("原始数据描述：")
-        print(self.data.describe())
+        log.debug("原始数据描述：")
+        log.debug(self.data.describe())
 
         # 语料清洗
-        print("数据清洗后描述：")
+        log.debug("数据清洗后描述：")
         data = NLP_cleaner.standardize_text(self.data, str_feature_name)
         # data = NLP_cleaner.remove_all_stop_word(data,
         #                                         "../input/stop_word.txt",
         #                                         "问题")
-        print(data.describe())
-
+        log.debug(data.describe())
 
         # 统计每个意图对应的问题数,升序排列并以柱状图来表示
         statistical_visualization.group_label(data, str_label_name,
@@ -97,7 +95,7 @@ class QuestionClassfier(object):
         data_word_number \
             = statistical_visualization.word_feature(copy.deepcopy(data),
                                                      str_feature_name)
-        print("问题平均长度：" + str(data_word_number[str_feature_name].mean()))
+        log.debug("问题平均长度：" + str(data_word_number[str_feature_name].mean()))
         statistical_visualization. \
             group_label(data_word_number, str_feature_name,
                         str_label_name, ["Length of " + str_feature_name,
@@ -175,21 +173,20 @@ class QuestionClassfier(object):
 
         return y_predicted, y_predicted_prb
 
-    def evaluation(self, x, y):
+    def evaluation(self, x, y, is_display=False):
         # 模型评估(新版本内容)，目前为了测试旧版本，暂时disable
         # =====
         lst_predicted_label, _ = self.predict(x)
 
         lst_true_label = []
-        # print(y)
         for item in y:
             lst_true_label.append(self.lst_label[item])
 
         # 输出评估指标
-        accuracy, precision, recall, f1 \
+        accuracy, precision, recall, f1, _ \
             = f1_score.sklearn_get_metrics(lst_true_label, lst_predicted_label)
 
-        print("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f"
+        log.debug("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f"
               % (accuracy, precision, recall, f1))
 
         for i in range(0, len(x)):
@@ -200,28 +197,29 @@ class QuestionClassfier(object):
                 # 非深度学习模型输入的x是一个文本的原始形式
                 else:
                     text = x[i]
-                print(text, "\t", lst_true_label[i],
-                      "\t", lst_predicted_label[i])
+                log.debug(text, "\t", lst_true_label[i],
+                                 "\t", lst_predicted_label[i])
 
-        print("*" * 30)
-        print("Model Precise: {0}".format(precision))
+        log.debug("*" * 30)
+        log.debug("Model Precise: {0}".format(precision))
         matrix = metrics.confusion_matrix(lst_true_label, lst_predicted_label)
-        print(matrix)
+        log.debug(matrix)
         report = metrics.precision_recall_fscore_support(lst_true_label,
                                                          lst_predicted_label)
         labels = sorted(set(lst_true_label))
 
         # 基于统计学的方法
         cm = confusion_matrix(lst_true_label, lst_predicted_label)
-        plt.figure(figsize=(10, 10))
 
-        statistics_based.plot_confusion_matrix(cm,
-                                               classes=self.lst_label,
-                                               normalize=True)
-        # plt.show()
+        if is_display:
+            plt.figure(figsize=(10, 10))
+            statistics_based.plot_confusion_matrix(cm,
+                                                   classes=self.lst_label,
+                                                   normalize=True)
 
         class_precise = dict(zip(
-            labels, map(lambda x: "%.2f" % round(x, 2), report[0])))
+            labels, map(lambda single_x: "%.2f" % round(single_x, 2),
+                        report[0])))
         return {
             'class_precise': class_precise,
             'total_precise': precision
@@ -231,11 +229,11 @@ class QuestionClassfier(object):
                            max_sequence_length=10, tokenizer=None):
 
         label = self.lst_label.index(label)
-        model_based_w2v.visualize_one_exp(feature, label,
-                                          self.lst_label, self.clf, self.embed,
-                                          tokenizer, output_path=output_path,
-                                          max_sequence_length=
-                                          max_sequence_length)
+        model_based_w2v\
+            .visualize_one_exp(feature, label,
+                               self.lst_label, self.clf, self.embed,
+                               tokenizer, output_path=output_path,
+                               max_sequence_length=max_sequence_length)
 
     def word_importance(self, word_num):
         # 基于模型的方法

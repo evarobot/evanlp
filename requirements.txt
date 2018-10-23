@@ -13,6 +13,7 @@ matplotlib
 xlrd
 keras
 mock
-lime
 flashtext
 tensorflow
+lime
+statsmodels

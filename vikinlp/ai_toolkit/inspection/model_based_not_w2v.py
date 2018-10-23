@@ -62,25 +62,14 @@ def plot_important_words(top_scores, top_words, bottom_scores,
 
 def batch_plot_importance(model, clf, list_label, word_num=10):
     importance = get_most_important_features(model, clf, word_num)
-    # print(importance[0])
-
-    # print(list_label)
     signal = ""
     while signal != "quit":
         class_name = input("Please intput class name:")
-
-    # for class_name in list_label:
         index_num = list_label.index(class_name)
-        # print(index_num, len(importance))
-        # print(importance.keys())
-
-    # for i in range(0, len(list_label)):
         top_scores = [a[0] for a in importance[index_num]['tops']]
         top_words = [a[1] for a in importance[index_num]['tops']]
         bottom_scores = [a[0] for a in importance[index_num]['bottom']]
         bottom_words = [a[1] for a in importance[index_num]['bottom']]
-        # pass
-
         plot_important_words(top_scores, top_words, bottom_scores,
                              bottom_words,
                              "Most important words for " + class_name)

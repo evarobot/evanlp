@@ -6,9 +6,10 @@ import nltk
 from vikinlp.ai_toolkit.util import zh
 from vikinlp.ai_toolkit.feeder import NLPFeeder
 from vikinlp.ai_toolkit.cleaner import NLP_cleaner
+from vikinlp.ai_toolkit.util import ai_log
 
 
-def group_label(df, main_column, auxiliary_column, axis_label, is_plt=True):
+def group_label(df, main_column, auxiliary_column, axis_label, is_plt=False):
     df_grouped = df.groupby([main_column], sort=False)[auxiliary_column]\
         .nunique().sort_values(ascending=True)
     if is_plt:
@@ -62,12 +63,12 @@ def get_frequency(df, column_name):
     word_sequence = aggregate_single_text(df, column_name)
     fd = nltk.FreqDist(word_sequence)
     item = fd.items()
-    # print ' '.join(keys)
+    # ai_log.save_text ' '.join(keys)
     dicts = dict(item)
     sort_dict = sorted(dicts.items(), key=lambda d: d[1], reverse=True)
 
-    print("共出现不同词汇个数" + str(len(sort_dict)))
-    print("所有词汇词频:\n" + str(sort_dict))
+    ai_log.save_text("共出现不同词汇个数" + str(len(sort_dict)))
+    ai_log.save_text("所有词汇词频:\n" + str(sort_dict))
 
 
 def explore_guangkai():
@@ -75,11 +76,11 @@ def explore_guangkai():
     # 读取数据源问题件
     data = NLPFeeder.read_file("../input/big_guangkai.txt", '@', '$',
                                ["意图", "问题"])
-    print("原始数据描述：")
-    print(data.describe())
+    ai_log.save_text("原始数据描述：")
+    ai_log.save_text(data.describe())
     data.drop_duplicates(inplace=True)
-    print("去重后数据描述：")
-    print(data.describe())
+    ai_log.save_text("去重后数据描述：")
+    ai_log.save_text(data.describe())
 
     # 统计每个意图对应的问题数,升序排列并以柱状图来表示
     group_label(data, "意图", "问题", ["意图", "样本数"])
