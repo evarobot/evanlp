@@ -2,18 +2,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import math
-
 import tensorflow as tf
 from tensorflow.python.eager import context
-from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
-from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
-from tensorflow.python.ops import random_ops
-from tensorflow.python.util.tf_export import tf_export
-
 
 def cyclic_learning_rate(global_step,
                          learning_rate=0.01,
@@ -58,7 +50,8 @@ def cyclic_learning_rate(global_step,
           ...
           global_step = tf.Variable(0, trainable=False)
           optimizer = tf.train.AdamOptimizer(learning_rate=
-            clr.cyclic_learning_rate(global_step=global_step, mode='triangular2'))
+            clr.cyclic_learning_rate(global_step=global_step,
+                                     mode='triangular2'))
           train_op = optimizer.minimize(loss_op, global_step=global_step)
           ...
           with tf.Session() as sess:
@@ -70,7 +63,8 @@ def cyclic_learning_rate(global_step,
           '''
         Args:
           global_step: A scalar `int32` or `int64` `Tensor` or a Python number.
-            Global step to use for the cyclic computation.  Must not be negative.
+            Global step to use for the cyclic computation.
+            Must not be negative.
           learning_rate: A scalar `float32` or `float64` `Tensor` or a
           Python number.  The initial learning rate which is the lower bound
             of the cycle (default = 0.1).
@@ -100,12 +94,15 @@ def cyclic_learning_rate(global_step,
         raise ValueError("global_step is required for cyclic_learning_rate.")
     with ops.name_scope(name, "CyclicLearningRate",
                         [learning_rate, global_step]) as name:
-        learning_rate = ops.convert_to_tensor(learning_rate, name="learning_rate")
+        learning_rate = ops.convert_to_tensor(learning_rate,
+                                              name="learning_rate")
         dtype = learning_rate.dtype
         global_step = math_ops.cast(global_step, dtype)
         step_size = math_ops.cast(step_size, dtype)
+
         def cyclic_lr():
-            """Helper to recompute learning rate; most helpful in eager-mode."""
+            """Helper to recompute learning rate; most helpful in eager-mode.
+            """
             # computing: cycle = floor( 1 + global_step / ( 2 * step_size ) )
             double_step = math_ops.multiply(2., step_size)
             global_div_double_step = math_ops.divide(global_step, double_step)
@@ -115,13 +112,15 @@ def cyclic_learning_rate(global_step,
             global_div_step = math_ops.divide(global_step, step_size)
             tmp = math_ops.subtract(global_div_step, double_cycle)
             x = math_ops.abs(math_ops.add(1., tmp))
-            # computing: clr = learning_rate + ( max_lr – learning_rate ) * max( 0, 1 - x )
+            # computing:
+            # clr = learning_rate + ( max_lr – learning_rate )
+            #       * max( 0, 1 - x )
             a1 = math_ops.maximum(0., math_ops.subtract(1., x))
             a2 = math_ops.subtract(max_lr, learning_rate)
             clr = math_ops.multiply(a1, a2)
             if mode == 'triangular2':
-                clr = math_ops.divide(clr, math_ops.cast(math_ops.pow(2, math_ops.cast(
-                    cycle-1, tf.int32)), tf.float32))
+                clr = math_ops.divide(clr, math_ops.cast(math_ops.pow(
+                    2, math_ops.cast(cycle-1, tf.int32)), tf.float32))
             if mode == 'exp_range':
                 clr = math_ops.multiply(math_ops.pow(gamma, global_step), clr)
             return math_ops.add(clr, learning_rate, name=name)
