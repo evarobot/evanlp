@@ -1,13 +1,12 @@
 from sklearn.model_selection import train_test_split
 from pandas.core.frame import DataFrame
-import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
+import logging
 
-from vikinlp.ai_toolkit.visualization import ml_visualization,\
-    statistical_visualization
-from vikinlp.ai_toolkit.util import zh
-from vikinlp.ai_toolkit.util import ai_log
+from vikinlp.ai_toolkit.preprocess import transformer
+
+log = logging.getLogger(__name__)
 
 
 def exclude_label_sample(df_complete, insufficient_label, label_name):
@@ -35,14 +34,11 @@ def balance_sample(x_sufficient, y_sufficient, x_insufficient, y_insufficient):
 
 
 def split_data(input_data, cv_ratio, feature_name, label_name):
-    insufficient_label = statistical_visualization.group_label(input_data,
-                                                               label_name,
-                                                               feature_name,
-                                                               [label_name,
-                                                                ""],
-                                                               False)
+    insufficient_label, _ = transformer.label_distribution(input_data,
+                                                           label_name,
+                                                           feature_name)
     if len(insufficient_label) > 0:
-        ai_log.save_text("Warning: Insufficient Observations. ")
+        log.info("Warning: Insufficient Observations. ")
 
     sufficient_sample, insufficient_sample \
         = exclude_label_sample(input_data, insufficient_label, label_name)
@@ -58,12 +54,6 @@ def split_data(input_data, cv_ratio, feature_name, label_name):
         x_train, x_valid, y_train, y_valid \
             = train_test_split(list_corpus, list_labels, test_size=cv_ratio,
                                shuffle=True)
-    # else:
-    #     x_train = list_corpus
-    #     y_train = list_labels
-    #     x_valid = []
-    #     y_valid = []
-    #     return x_train, x_valid, y_train, y_valid
 
     list_corpus = insufficient_sample[feature_name].tolist()
     list_labels = insufficient_sample[label_name].tolist()
@@ -83,26 +73,11 @@ def split_data(input_data, cv_ratio, feature_name, label_name):
     return x_train, x_valid, y_train, y_valid
 
 
-def validate_distribution(list_dataset, feature_name, label_name,
-                          is_display=False):
-    # 验证生成数据的标签同比例特性
-    i = 1
-    for item in list_dataset:
-        if is_display:
-            plt.subplot(220+i)
-        i += 1
-        combination = {label_name: item[0], feature_name: item[1]}
-        data_visualization = DataFrame(combination)
-        statistical_visualization.group_label(data_visualization,
-                                              label_name, feature_name,
-                                              [label_name, "Count"], is_display)
-
-
 def dump_dataset(data, feature_name, label_name, train_untrain_rate,
                  valid_test_rate, dump_file=None):
-    list_label = ml_visualization.get_distinct_label(data, label_name)
+    list_label = transformer.get_distinct_label(data, label_name)
     # label要以统一的[文本-数字编号]对来进行切换
-    digital_label = ml_visualization.construct_label(data, label_name)
+    digital_label = transformer.construct_label(data, label_name)
     # 将文本类别名转换为数字类别名
     data[label_name] = digital_label
 
@@ -138,7 +113,7 @@ def dump_dataset(data, feature_name, label_name, train_untrain_rate,
 
 
 if __name__ == '__main__':
-    zh.set_chinese_font()
+    # zh.set_chinese_font()
 
     # 读取数据源问题件
     # data = NLPFeeder.read_file("../input/big_guangkai.txt", '@', '$',
@@ -160,3 +135,4 @@ if __name__ == '__main__':
     # 验证生成数据的标签同比例特性
     # validate_distribution([(y_train, x_train), (y_valid, x_valid),
     #                        (y_test, x_test)], feature_name, label_name)
+    pass

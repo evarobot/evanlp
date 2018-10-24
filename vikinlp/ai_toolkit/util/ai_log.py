@@ -1,6 +1,5 @@
 def save_text(*args):
-    # print(args)
-    pass
+    print(args)
 
 
 if __name__ == "__main__":

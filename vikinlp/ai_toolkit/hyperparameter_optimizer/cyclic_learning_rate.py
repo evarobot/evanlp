@@ -7,6 +7,7 @@ from tensorflow.python.eager import context
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 
+
 def cyclic_learning_rate(global_step,
                          learning_rate=0.01,
                          max_lr=0.1,

@@ -1,5 +1,6 @@
+import logging
 from vikinlp.ai_toolkit.feeder import NLPFeeder
-from vikinlp.ai_toolkit.util import ai_log
+log = logging.getLogger(__name__)
 
 
 def standardize_text(df, text_field):
@@ -47,14 +48,14 @@ def explore_guangkai():
     # 读取数据源问题件
     data = NLPFeeder.read_file("../input/big_guangkai.txt", '@', '$',
                                ["意图", "问题"])
-    ai_log.save_text(data.describe())
+    log.info(data.describe())
     data.drop_duplicates(inplace=True)
-    ai_log.save_text(data.describe())
+    log.info(data.describe())
 
     data = standardize_text(data, "问题")
-    ai_log.save_text(data)
+    log.info(data)
     data = remove_all_stop_word(data, "../input/stop_word.txt", "问题")
-    ai_log.save_text(data)
+    log.info(data)
 
 
 if __name__ == '__main__':

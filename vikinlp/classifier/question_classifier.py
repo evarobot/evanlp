@@ -1,26 +1,14 @@
-import copy
 from abc import abstractmethod
-import logging
+import logging as log
 
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
 
-from vikinlp.ai_toolkit.util import sys
-from vikinlp.ai_toolkit.feeder import NLPFeeder
-from vikinlp.ai_toolkit.cleaner import NLP_cleaner
-from vikinlp.ai_toolkit.visualization import ml_visualization, \
-    statistical_visualization
-from vikinlp.ai_toolkit.preprocess import embed, cv_producer
-from vikinlp.ai_toolkit.inspection import statistics_based, \
-    model_based_not_w2v, model_based_w2v
+from vikinlp.ai_toolkit.preprocess import cv_producer, embed
 from vikinlp.ai_toolkit.evaluation import f1_score
-import vikinlp.io as io
+from vikinlp import io
 
-log = logging.getLogger(__name__)
 
 class QuestionClassfier(object):
     def __init__(self, data=None):
@@ -50,69 +38,6 @@ class QuestionClassfier(object):
             = cv_producer.dump_dataset(self.data, feature_name,
                                        label_name, train_untrain_rate,
                                        valid_test_rate, str_path)
-
-    def dr_visualization(self, dimension, str_label_name,
-                         w2v_num, feature_name, embed_file):
-        list_label = ml_visualization.construct_label(self.data,
-                                                      str_label_name)
-
-        if self.embed_mode == "bow":
-            bow = ml_visualization.construct_vector(self.data, embed.bow,
-                                                    feature_name=feature_name)
-        elif self.embed_mode == "tf-idf":
-            bow = ml_visualization.construct_vector(self.data, embed.tfidf,
-                                                    feature_name)
-        else:
-            vectors = embed.read_w2v(embed_file, w2v_num)
-            bow = ml_visualization. \
-                construct_vector(self.data,
-                                 embed.get_word2vec_embeddings, vectors,
-                                 feature_name)
-
-        ml_visualization.pca(bow, list_label, dimension)
-
-    def des_visualization(self, lst_column_name):
-        str_label_name = lst_column_name[0]
-        str_feature_name = lst_column_name[1]
-
-        log.debug("原始数据描述：")
-        log.debug(self.data.describe())
-
-        # 语料清洗
-        log.debug("数据清洗后描述：")
-        data = NLP_cleaner.standardize_text(self.data, str_feature_name)
-        # data = NLP_cleaner.remove_all_stop_word(data,
-        #                                         "../input/stop_word.txt",
-        #                                         "问题")
-        log.debug(data.describe())
-
-        # 统计每个意图对应的问题数,升序排列并以柱状图来表示
-        statistical_visualization.group_label(data, str_label_name,
-                                              str_feature_name,
-                                              [str_label_name, "Count"])
-
-        # 每个问题词长度对应出现的意图数（相当于不同长度问题下的熵）
-        data_word_number \
-            = statistical_visualization.word_feature(copy.deepcopy(data),
-                                                     str_feature_name)
-        log.debug("问题平均长度：" + str(data_word_number[str_feature_name].mean()))
-        statistical_visualization. \
-            group_label(data_word_number, str_feature_name,
-                        str_label_name, ["Length of " + str_feature_name,
-                                         "Count of " + str_label_name])
-
-        # 每个问题字长度对应出现的意图数（相当于不同长度问题下的熵）
-        data_character_number \
-            = statistical_visualization.character_feature(copy.deepcopy(data),
-                                                          str_feature_name)
-        statistical_visualization.group_label(data_character_number,
-                                              str_feature_name,
-                                              str_label_name,
-                                              ["Length of " + str_feature_name,
-                                               "Count of " + str_label_name])
-
-        # 统计词频
-        statistical_visualization.get_frequency(data, str_feature_name)
 
     @staticmethod
     def save_model(model_object, save_path):
@@ -186,8 +111,9 @@ class QuestionClassfier(object):
         accuracy, precision, recall, f1, _ \
             = f1_score.sklearn_get_metrics(lst_true_label, lst_predicted_label)
 
-        log.debug("accuracy = %.3f, precision = %.3f, recall = %.3f, f1 = %.3f"
-              % (accuracy, precision, recall, f1))
+        log.info("accuracy = %.3f, precision = %.3f,"
+                         " recall = %.3f, f1 = %.3f"
+                         % (accuracy, precision, recall, f1))
 
         for i in range(0, len(x)):
             if lst_true_label[i] != lst_predicted_label[i]:
@@ -197,25 +123,25 @@ class QuestionClassfier(object):
                 # 非深度学习模型输入的x是一个文本的原始形式
                 else:
                     text = x[i]
-                log.debug(text, "\t", lst_true_label[i],
+                log.info(text, "\t", lst_true_label[i],
                                  "\t", lst_predicted_label[i])
 
-        log.debug("*" * 30)
-        log.debug("Model Precise: {0}".format(precision))
+        log.info("*" * 30)
+        log.info("Model Precise: {0}".format(precision))
         matrix = metrics.confusion_matrix(lst_true_label, lst_predicted_label)
-        log.debug(matrix)
+        log.info(matrix)
         report = metrics.precision_recall_fscore_support(lst_true_label,
                                                          lst_predicted_label)
         labels = sorted(set(lst_true_label))
 
         # 基于统计学的方法
-        cm = confusion_matrix(lst_true_label, lst_predicted_label)
-
-        if is_display:
-            plt.figure(figsize=(10, 10))
-            statistics_based.plot_confusion_matrix(cm,
-                                                   classes=self.lst_label,
-                                                   normalize=True)
+        # cm = confusion_matrix(lst_true_label, lst_predicted_label)
+        #
+        # if is_display:
+        #     plt.figure(figsize=(10, 10))
+        #     statistics_based.plot_confusion_matrix(cm,
+        #                                            classes=self.lst_label,
+        #                                            normalize=True)
 
         class_precise = dict(zip(
             labels, map(lambda single_x: "%.2f" % round(single_x, 2),
@@ -224,46 +150,6 @@ class QuestionClassfier(object):
             'class_precise': class_precise,
             'total_precise': precision
         }
-
-    def lime_visualization(self, feature, label, output_path,
-                           max_sequence_length=10, tokenizer=None):
-
-        label = self.lst_label.index(label)
-        model_based_w2v\
-            .visualize_one_exp(feature, label,
-                               self.lst_label, self.clf, self.embed,
-                               tokenizer, output_path=output_path,
-                               max_sequence_length=max_sequence_length)
-
-    def word_importance(self, word_num):
-        # 基于模型的方法
-        # 只能用于BOW或者TF-IDF词典，不可用于Word2Vec
-        model_based_not_w2v.batch_plot_importance(self.embed, self.clf,
-                                                  self.lst_label,
-                                                  word_num=word_num)
-
-    def get_data(self, str_input_path, lst_column_name,
-                 separator1, separator2):
-        """
-        载入数据
-        :param str_input_path:
-        :param lst_column_name:
-        :param separator1:
-        :param separator2:
-        :return:
-        """
-        data = pd.DataFrame(columns=lst_column_name)
-
-        list_file = sys.file_list(str_input_path)
-
-        for item in list_file:
-            cur_df = NLPFeeder.read_file(item,
-                                         separator1, separator2,
-                                         lst_column_name)
-            data = pd.concat([data, cur_df], axis=0)
-
-        data.drop_duplicates(inplace=True)
-        self.data = data
 
     @abstractmethod
     def refresh_coef(self):

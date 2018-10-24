@@ -9,10 +9,9 @@ Flask-SQLAlchemy==2.3.2
 requests
 gunicorn
 pandas
-xlrd
 keras
 mock
 flashtext
 tensorflow
-lime
 statsmodels
+mongoengine

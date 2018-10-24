@@ -2,8 +2,6 @@ from sklearn.metrics import accuracy_score, f1_score,\
     precision_score, recall_score
 from statsmodels.stats.proportion import proportion_confint
 
-from vikinlp.ai_toolkit.util import ai_log
-
 
 def calculate_confidence_int(correct_num, total_num):
     lower, upper = proportion_confint(correct_num, total_num, 0.05)

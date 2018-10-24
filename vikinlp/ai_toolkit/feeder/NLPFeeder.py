@@ -1,9 +1,11 @@
+import logging
+
 import pandas as pd
 import xlrd
 import jieba
 
-from vikinlp.ai_toolkit.util.sys import remove_folder, file_list
-from vikinlp.ai_toolkit.util import ai_log
+from vikinlp.ai_toolkit.util.sys import file_list
+log = logging.getLogger(__name__)
 
 
 def read_file(input_path, separator1, separator2, column_name):
@@ -14,9 +16,9 @@ def read_file(input_path, separator1, separator2, column_name):
 
 def read_xls(input_path, output_path, str_separator):
     excel_file = xlrd.open_workbook(input_path)
-    ai_log.save_text(excel_file.sheet_names())
+    log.info(excel_file.sheet_names())
     sheet = excel_file.sheet_by_index(0)
-    ai_log.save_text(sheet.name, sheet.nrows, sheet.ncols)
+    log.info(sheet.name, sheet.nrows, sheet.ncols)
     label_name = ""
     for i in range(1, sheet.nrows):
         row = sheet.row_values(i)
@@ -40,7 +42,7 @@ def read_xls_by_sheet(input_path, output_path, str_separator):
     for single_sheet in sheet_name:
         sheet = excel_file.sheet_by_name(single_sheet)
 
-        ai_log.save_text(sheet.name, sheet.nrows, sheet.ncols)
+        log.info(sheet.name, sheet.nrows, sheet.ncols)
 
         for i in range(1, sheet.nrows):
             row = sheet.row_values(i)

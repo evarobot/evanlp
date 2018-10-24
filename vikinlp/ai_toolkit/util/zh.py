@@ -1,7 +1,5 @@
 import re
 
-import matplotlib.pyplot as plt
-
 
 def str_q2b(ustring):
     # 字符串全角转半角
@@ -71,10 +69,3 @@ def count_characters(input_str):
                 chars_num = chars_num + 1 + len(elem)
         return chars_num
     return 0
-
-
-# 需要手动下载simhei字体，拷贝到matplotlib中的字库目录下
-# 参考https://www.jb51.net/article/115533.htm
-def set_chinese_font():
-    plt.rcParams[u'font.sans-serif'] = ['simhei']
-    plt.rcParams['axes.unicode_minus'] = False

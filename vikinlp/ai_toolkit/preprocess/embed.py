@@ -1,13 +1,16 @@
 import pickle
 import copy
+import logging
 
 from pandas.core.frame import DataFrame
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import numpy as np
 from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
-from vikinlp.ai_toolkit.visualization import ml_visualization
-from vikinlp.ai_toolkit.util import ai_log
+
+from vikinlp.ai_toolkit.preprocess import transformer
+
+log = logging.getLogger(__name__)
 
 
 def bow(list_text):
@@ -30,7 +33,7 @@ def read_w2v(path, topn, path_solidified=None):
     word_vector = {}
     iw = []
     wi = {}
-    ai_log.save_text("Loading Vocabulary ...")
+    log.info("Loading Vocabulary ...")
     if path_solidified is None:
         with open(path, encoding='utf-8', errors='ignore') as f:
             first_line = True
@@ -51,7 +54,7 @@ def read_w2v(path, topn, path_solidified=None):
     else:
         with open(path_solidified, "rb") as f:
             word_vector = pickle.load(f)
-    ai_log.save_text("Loaded Vocabulary ...")
+    log.info("Loaded Vocabulary ...")
     return word_vector
 
 
@@ -93,7 +96,7 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
     tokenizer.fit_on_texts(clean_questions["Column1"].tolist())
 
     word_index = tokenizer.word_index
-    ai_log.save_text('Found %s unique tokens.' % len(word_index))
+    log.info('Found %s unique tokens.' % len(word_index))
 
     # ====
     # 词典的确立
@@ -105,8 +108,8 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
 
     # ====
     # label要以统一的[文本-数字编号]对来进行切换
-    digital_label = ml_visualization.construct_label(clean_questions,
-                                                     "Column2")
+    digital_label = transformer.construct_label(clean_questions,
+                                                "Column2")
     # 将文本类别名转换为数字类别名
     clean_questions["Column2"] = digital_label
 
@@ -124,7 +127,45 @@ def sequence_tokenize(list_label, x_train, y_train, x_valid,
         list_sample[2][2]
 
 
+def aggregate_text(func):
+    def wrapper(*args):
+        list_sequence = []
+        args[0].apply(func, axis=1, column_name=args[1],
+                      list_sequence=list_sequence)
+        return list_sequence
+    return wrapper
+
+
+@aggregate_text
+def aggregate_single_text(df, column_name, list_sequence):
+    for item in df[column_name].split(" "):
+        if item is not "":
+            list_sequence.append(item)
+
+
+@aggregate_text
+def aggregate_single_text(df, column_name, list_sequence):
+    list_sequence.append(df[column_name])
+
+
+def construct_vector(data, fun, vocabulary=None, feature_name=""):
+    list_sequence = aggregate_single_text(data, feature_name)
+
+    if vocabulary is None:
+        cv_emb, cv_model = fun(list_sequence)
+    else:
+        cv_emb, cv_model = fun(list_sequence, vocabulary)
+
+    if type(cv_emb) is list:
+        cv_emb = np.array(cv_emb)
+    else:
+        cv_emb = cv_emb.toarray()
+
+    return cv_emb
+
+
 if __name__ == '__main__':
-    w2v = read_w2v("/home/jichaojie/Bitmain/VikiNLU/data/sgns.baidubaike.bigram-char",
-             200)
-    ai_log.save_text(w2v["们"])
+    w2v = read_w2v("/home/jichaojie/Bitmain/VikiNLU/data/"
+                   "sgns.baidubaike.bigram-char",
+                   200)
+    log.info(w2v["们"])
