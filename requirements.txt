@@ -14,4 +14,3 @@ mock
 flashtext
 tensorflow
 statsmodels
-mongoengine
