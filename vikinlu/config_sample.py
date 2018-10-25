@@ -9,7 +9,7 @@ import os
 
 class _ConfigLog(object):
     _log_level = 'INFO'
-    _log_path = './'
+    _log_path = '/var/log/vikidm'
 
     @property
     def log_level(self):
@@ -77,7 +77,7 @@ class _Config:
 
     log_level = "INFO"
     log_path = "/var/log/vikinlu"
-    
+
     @staticmethod
     def init_app(app):
         app.config["IMAGE_UPLOAD_PATH"] = os.path.join(
