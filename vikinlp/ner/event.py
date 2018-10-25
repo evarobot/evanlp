@@ -69,8 +69,10 @@ class EventEntity(object):
         last_num = None
         if len(lis_quantity) > 0:
             last_num = lis_quantity[-1][-1]
-        partial_text = text[text.find(str(last_num))+1:]
-        return partial_text
+            partial_text = text[text.find(str(last_num))+1:]
+            return partial_text
+        else:
+            return None
 
     @staticmethod
     def non_sense_cut(text):

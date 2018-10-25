@@ -20,6 +20,15 @@ class TimeEntity(object):
         """
         return self._recognize_with_rules(text)
 
+    def __init__(self):
+        # jieba.add_word("分", freq=99999999, tag="m")
+        jieba.add_word("今天", freq=99999999, tag="m")
+        jieba.add_word("下午", freq=99999999, tag="m")
+        jieba.add_word("点", freq=99999999, tag="m")
+        jieba.add_word("分钟", freq=99999999, tag="m")
+        jieba.add_word("秒钟", freq=99999999, tag="m")
+        jieba.add_word("小时", freq=99999999, tag="m")
+
     @staticmethod
     # 对提取出的拼接日期串进行进一步的处理，进行有效性判断
     def check_time_valid(word):
@@ -47,9 +56,15 @@ class TimeEntity(object):
         key_date = ('今天', '明天', '后天')
 
         for k, v in jieba.posseg.cut(text):
+            # try:
+            #     int(k)
+            #     boo_number = True
+            # except:
+            #     boo_number = False
+
             # 将"分"单独挑出来处理
             if "分" in k and word != "":
-                word = word + "分"
+                word = word + k
                 continue
 
             if k in key_date:
@@ -64,13 +79,15 @@ class TimeEntity(object):
                     time_res.append(word)
                     word = ''
             # m:数字 t:时间
-            elif v in ['m', 't']:
+            elif v in ['m', 't'] or k.isdigit():
                 word = k
 
         if word != '':
             time_res.append(word)
         result = list(filter(lambda x: x is not None,
                              [self.check_time_valid(w) for w in time_res]))
+        if len(result) == 0:
+            result = None
         return result
 
     @staticmethod

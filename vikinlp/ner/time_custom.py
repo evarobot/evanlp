@@ -26,7 +26,7 @@ class CustomTimeEntity():
         return datetime.today()
 
     def __init__(self):
-        jieba.add_word("分", freq=99999999, tag="m")
+        # jieba.add_word("分", freq=99999999, tag="m")
         jieba.add_word("今天", freq=99999999, tag="m")
         jieba.add_word("下午", freq=99999999, tag="m")
         jieba.add_word("点", freq=99999999, tag="m")
@@ -172,7 +172,7 @@ class CustomTimeEntity():
                         time_res.append(word)
                         word = ''
                 # m:数字 t:时间
-                elif v in ['m', 't']:
+                elif v in ['m', 't'] or k.isdigit():
                     if k in ["半", "半个"]:
                         k = "0.5"
                     word = k

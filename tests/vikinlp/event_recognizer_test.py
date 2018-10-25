@@ -4,7 +4,9 @@ if __name__ == '__main__':
     event_recognizer = event.EventEntity()
 
     # 单例测试
-    # print(event_recognizer.recognize("明天早上提醒我10点钟起床"))
+    # text1 = "定个闹钟"
+    # print(event_recognizer.recognize(text1))
+    # exit()
 
     with open("../data/date_and_event_recognition.txt", 'r') as f:
         lst_text = f.readlines()
@@ -19,6 +21,6 @@ if __name__ == '__main__':
         event_entity = event_recognizer.recognize(lst_entity[0])
 
         print(lst_entity[0], lst_entity[1], event_entity, sep=';')
-        assert(lst_entity[1] == event_entity)
+        assert(lst_entity[1] == str(event_entity))
         i += 1
     print("测试完成，共通过" + str(i) + "个测试样本。")
