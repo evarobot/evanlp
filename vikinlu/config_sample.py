@@ -9,7 +9,7 @@ import os
 
 class _ConfigLog(object):
     _log_level = 'INFO'
-    _log_path = '/var/log/vikidm'
+    _log_path = '/var/log/vikinlu'
 
     @property
     def log_level(self):
