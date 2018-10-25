@@ -75,6 +75,9 @@ class _Config:
     _port = 8888
     _debug = "False"
 
+    log_level = "INFO"
+    log_path = "/var/log/vikinlu"
+    
     @staticmethod
     def init_app(app):
         app.config["IMAGE_UPLOAD_PATH"] = os.path.join(

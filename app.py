@@ -23,7 +23,7 @@ app.config['MONGODB_SETTINGS'] = ConfigMongo.MONGODB_SETTINGS
 
 db = MongoEngine()
 
-init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
+init_logger(level=Config.log_level, path=Config.log_path)
 log = logging.getLogger(__name__)
 
 
