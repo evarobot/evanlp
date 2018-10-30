@@ -40,6 +40,7 @@ class IntentRecognizer(object):
         """
         Read words of value from database.
         """
+        return
         value_words = []
         ret = cms_gate.get_domain_values(self._domain_id)
         if ret['code'] != 0:
@@ -50,6 +51,7 @@ class IntentRecognizer(object):
             value_words.append(value['name'])
             value_words += value['words']
         value_words = set(value_words)
+        #  TODO: remove custorm jieba words#
         for word in value_words:
             if word not in self.custom_words:
                 self.custom_words.add(word)

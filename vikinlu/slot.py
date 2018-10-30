@@ -40,7 +40,8 @@ class SlotRecognizer(object):
         """
         ret = cms_gate.get_slot_values_for_nlu(domain_id)
         if ret['code'] != 0:
-            raise RuntimeError("Failed to invoke `get_domain_slots`.")
+            log.error(ret)
+            raise RuntimeError("Failed to invoke `get_slot_values_for_nlu`.")
         slots = ret["data"]["slots"]
         for name, values in slots.items():
             d_values = {}
