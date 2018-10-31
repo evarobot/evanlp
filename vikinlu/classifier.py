@@ -93,7 +93,10 @@ class FuzzyClassifier(object):
         self._classifier = QuestionClassfier.get_classifier(algorithm)
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
-        if not self._classifier.load_model(model_fname):
+        model = self._classifier.load_model(model_fname)
+        if model:
+            self._classifier = model
+        else:
             log.warning("Model has not been trained.")
 
     def train(self, label_data):
@@ -105,7 +108,6 @@ class FuzzyClassifier(object):
 
         """
         # save fuzzy model
-        self._classifier.embed_mode = "bow"
         tmp = zip(*label_data)
         tmp = list(tmp)
         y = tmp[0]
@@ -155,7 +157,10 @@ class BizChatClassifier(FuzzyClassifier):
         self._classifier = QuestionClassfier.get_classifier(algorithm)
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
-        if not self._classifier.load_model(model_fname):
+        model = self._classifier.load_model(model_fname)
+        if model:
+            self._classifier = model
+        else:
             log.warning("Model has not been trained.")
 
     def train(self, label_data):
@@ -170,7 +175,7 @@ class BizChatClassifier(FuzzyClassifier):
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         summary = super(BizChatClassifier, self).train(biz_chat_data)
-        self._classifier.save_model(self._classifier.clf, model_fname)
+        self._classifier.save_model(model_fname)
         return summary
 
     def _load_chat_label_data(self):

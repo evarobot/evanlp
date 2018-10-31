@@ -25,6 +25,7 @@ class QuestionClassfier(object):
         self.clf = None
         self.embed_mode = None
         self.actual_model = None
+        self.embed_mode = "bow"
 
     @classmethod
     def get_classifier(cls, algorithm):

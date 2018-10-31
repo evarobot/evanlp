@@ -99,6 +99,7 @@ class NLURobot(object):
                     "intent": intent,
                     "confidence": 1.0,
                     "slots": d_slots,
+                    "related_slots": slots,
                     "node_id": None
                 }
         intent, confidence, node_id = self._intent_classify(context, question)
@@ -114,11 +115,13 @@ class NLURobot(object):
             else:
                 d_slots = self._slot.recognize(question, ret["slots"])
             log.debug("SLOTS DETECT to {0}".format(d_slots))
+        slots = [] if intent == "casual_talk" else self._intent2slots[intent]
         return {
             "question": question,
             "intent": intent,
             "confidence": confidence,
             "slots": d_slots,
+            "related_slots": slots,
             "node_id": node_id
         }
 
