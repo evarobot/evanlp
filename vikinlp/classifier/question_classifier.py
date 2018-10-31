@@ -49,6 +49,11 @@ class QuestionClassfier(object):
             feature_fname = fname + "_feature.txt"
             io.save(self.embed, feature_fname)
             log.debug("Save feature to {0}".format(feature_fname))
+
+            label_fname = fname + "_label.txt"
+            io.save(self.lst_label, label_fname)
+            log.debug("Save feature to {0}".format(label_fname))
+
         except Exception as e:
             log.error(e)
             return False
@@ -63,6 +68,10 @@ class QuestionClassfier(object):
             feature_fname = fname + "_feature.txt"
             self.embed = io.load(feature_fname)
             log.debug("Load features from {0}".format(feature_fname))
+
+            label_fname = fname + "_label.txt"
+            self.lst_label = io.load(label_fname)
+            log.debug("Load features from {0}".format(label_fname))
 
         except Exception as e:
             log.error(e)
@@ -106,6 +115,8 @@ class QuestionClassfier(object):
         # 模型评估(新版本内容)，目前为了测试旧版本，暂时disable
         # =====
         lst_predicted_label, _ = self.predict(x)
+        if type(lst_predicted_label) is not list:
+            lst_predicted_label = [lst_predicted_label]
 
         lst_true_label = []
         for item in y:
