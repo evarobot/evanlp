@@ -25,7 +25,6 @@ class QuestionClassfier(object):
         self.clf = None
         self.embed_mode = None
         self.actual_model = None
-        self.embed_mode = "bow"
 
     @classmethod
     def get_classifier(cls, algorithm):
@@ -40,38 +39,10 @@ class QuestionClassfier(object):
                                        label_name, train_untrain_rate,
                                        valid_test_rate, str_path)
 
-    # def save_model(self, fname):
-    #     try:
-    #         model_fname = fname + "_model.txt"
-    #         io.save(self.model, model_fname)
-    #         log.debug("Save model to {0}".format(model_fname))
-    #
-    #         feature_fname = fname + "_feature.txt"
-    #         io.save(self.feature, feature_fname)
-    #         log.debug("Save feature to {0}".format(feature_fname))
-    #     except Exception as e:
-    #         log.error(e)
-    #         return False
-    #     return True
-
-    # def load_model(self, fname):
-    #     try:
-    #         model_fname = fname + "_model.txt"
-    #         self.model = io.load(model_fname)
-    #         log.debug("Load model from {0}".format(model_fname))
-    #
-    #         feature_fname = fname + "_feature.txt"
-    #         self.features = io.load(feature_fname)
-    #         log.debug("Load features from {0}".format(feature_fname))
-    #     except Exception as e:
-    #         log.error(e)
-    #         return False
-    #     return True
-
     def save_model(self, fname):
         try:
             model_fname = fname + "_model.txt"
-            io.save(self, model_fname)
+            io.save(self.clf, model_fname)
             log.debug("Save model to {0}".format(model_fname))
 
             feature_fname = fname + "_feature.txt"
@@ -85,7 +56,7 @@ class QuestionClassfier(object):
     def load_model(self, fname):
         try:
             model_fname = fname + "_model.txt"
-            model = io.load(model_fname)
+            self.clf = io.load(model_fname)
             log.debug("Load model from {0}".format(model_fname))
 
             feature_fname = fname + "_feature.txt"
@@ -94,8 +65,8 @@ class QuestionClassfier(object):
 
         except Exception as e:
             log.error(e)
-            return None
-        return model
+            return False
+        return True
 
     def train(self, **kwargs):
         # 模型训练
@@ -118,13 +89,13 @@ class QuestionClassfier(object):
         else:
             embedded_x_valid = text
 
-        y_predicted = self.actual_model.predict(embedded_x_valid)
+        y_predicted = self.clf.predict(embedded_x_valid)
 
         lst_tmp = []
         for i in range(0, len(y_predicted)):
             lst_tmp.append(self.lst_label[y_predicted[i]])
         y_predicted = lst_tmp
-        y_predicted_prb = self.clf.actual_model.predict_proba(embedded_x_valid)
+        y_predicted_prb = self.clf.predict_proba(embedded_x_valid)
         if len(y_predicted) == 1:
             y_predicted = y_predicted[0]
             y_predicted_prb = max(y_predicted_prb[0])
@@ -146,8 +117,8 @@ class QuestionClassfier(object):
             = f1_score.sklearn_get_metrics(lst_true_label, lst_predicted_label)
 
         log.info("accuracy = %.3f, precision = %.3f,"
-                         " recall = %.3f, f1 = %.3f"
-                         % (accuracy, precision, recall, f1))
+                 " recall = %.3f, f1 = %.3f"
+                 % (accuracy, precision, recall, f1))
 
         for i in range(0, len(x)):
             if lst_true_label[i] != lst_predicted_label[i]:
@@ -159,7 +130,7 @@ class QuestionClassfier(object):
                     text = x[i]
 
                 log.info(text + "\t" + lst_true_label[i] +
-                                 "\t" + lst_predicted_label[i])
+                         "\t" + lst_predicted_label[i])
 
         log.info("*" * 30)
         log.info("Model Precise: {0}".format(precision))
@@ -204,15 +175,17 @@ class LogisticRegressionClassifier(QuestionClassfier):
         QuestionClassfier.__init__(self)
 
         # 为了对sklearn中的fit函数进行封装，所以将clf指向self
-        self.clf = self
-        self.actual_model = LogisticRegression(C=30.0, class_weight="balanced",
-                                               solver='liblinear',
-                                               n_jobs=-1, random_state=0)
-        self.clf.predict_proba = self.actual_model.predict_proba
+        self.clf = LogisticRegression(C=30.0, class_weight="balanced",
+                                      solver='liblinear',
+                                      n_jobs=-1, random_state=0)
+        self.clf.predict_proba = self.clf.predict_proba
+        self.original_fit = self.clf.fit
         self.clf.fit = self.fit
+        self.coef_ = None
 
     # 需要参数如下：x,y,embed_path,max_num
     def fit(self, **kwargs):
+
         # 词典嵌入
         if self.embed_mode == "bow":
             embedded_x_train, self.embed = embed.bow(kwargs["x"])
@@ -225,11 +198,12 @@ class LogisticRegressionClassifier(QuestionClassfier):
                                                                 self.embed)
 
         # 模型训练
-        self.actual_model.fit(embedded_x_train, kwargs["y"])
+        self.original_fit(embedded_x_train, kwargs["y"])
         self.refresh_coef()
 
         # 输出模型评估报告
         return self.evaluation(self.x_valid, self.y_valid)
 
     def refresh_coef(self):
-        self.coef_ = self.actual_model.coef_
+        self.coef_ = self.clf.coef_
+
