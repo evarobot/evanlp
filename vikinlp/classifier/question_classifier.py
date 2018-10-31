@@ -23,7 +23,7 @@ class QuestionClassfier(object):
         self.y_valid = None
         self.y_test = None
         self.clf = None
-        self.embed_mode = None
+        self.embed_mode = "bow"
         self.actual_model = None
 
     @classmethod
