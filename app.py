@@ -11,7 +11,6 @@ from threading import Thread
 
 from vikicommon.log import init_logger
 from vikicommon.gate.cms import cms_gate
-from vikinlu.config import ConfigLog
 from vikinlu.config import ConfigMongo
 from vikinlu.config import Config
 from vikinlu.robot import NLURobot
@@ -23,7 +22,7 @@ app.config['MONGODB_SETTINGS'] = ConfigMongo.MONGODB_SETTINGS
 
 db = MongoEngine()
 
-init_logger(level=ConfigLog.log_level, path=ConfigLog.log_path)
+init_logger(level=Config.log_level, path=Config.log_path)
 log = logging.getLogger(__name__)
 
 

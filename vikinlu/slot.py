@@ -38,18 +38,17 @@ class SlotRecognizer(object):
         domain_id : str, Project id.
 
         """
-        ret = cms_gate.get_domain_slots(domain_id)
+        ret = cms_gate.get_slot_values_for_nlu(domain_id)
         if ret['code'] != 0:
-            raise RuntimeError("Failed to invoke `get_domain_slots`.")
-        for slot in ret["slots"]:
+            log.error(ret)
+            raise RuntimeError("Failed to invoke `get_slot_values_for_nlu`.")
+        slots = ret["data"]["slots"]
+        for name, values in slots.items():
             d_values = {}
-            ret = cms_gate.get_slot_values_for_nlu(slot['id'])
-            if ret['code'] != 0:
-                raise RuntimeError("Failed to invoke 'get_slot_values_for_nlu'")
-            for value in ret['data']['values']:
+            for value in values:
                 value["words"].append(value["name"])
                 d_values[value["name"]] = value["words"]
-            self._slots[slot["name"]] = d_values
+            self._slots[name] = d_values
 
     @classmethod
     def get_slot_recognizer(self, domain_id):
@@ -72,8 +71,8 @@ class SlotRecognizer(object):
         """
         slots = {}
         for slot_name in slot_names:
-            value = self._slots[slot_name]
-            for value_name, value_pattern in value.items():
+            values = self._slots[slot_name]
+            for value_name, value_pattern in values.items():
                 ret = KeyWordEntity.recognize(question, value_pattern)
                 if ret:
                     slots[slot_name] = value_name

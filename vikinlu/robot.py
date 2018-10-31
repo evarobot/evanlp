@@ -23,6 +23,8 @@ class NLURobot(object):
         self._sensitive = Sensitive.get_sensitive(self.domain_id)
         self._slot = SlotRecognizer.get_slot_recognizer(self.domain_id)
         self._intent = IntentRecognizer.get_intent_recognizer(self.domain_id)
+        self._intent2slots = cms_gate.get_all_intent_slots(
+            self.domain_id)["data"]
 
     @classmethod
     def get_robot(self, domain_id):
@@ -87,6 +89,18 @@ class NLURobot(object):
         """
         # call rpc with dm_robot_id or call with dm robot directly
         log.info("----------------%s------------------" % question)
+        if context["intent"] is not None:
+            intent = context["intent"]
+            slots = [] if intent == "casual_talk" else self._intent2slots[intent]
+            d_slots = self._slot.recognize(question, slots)
+            if d_slots:
+                return {
+                    "question": question,
+                    "intent": intent,
+                    "confidence": 1.0,
+                    "slots": d_slots,
+                    "node_id": None
+                }
         intent, confidence, node_id = self._intent_classify(context, question)
         d_slots = {}
         if intent and intent not in ["sensitive", "casual_talk", "nonsense"]:

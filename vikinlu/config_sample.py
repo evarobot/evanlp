@@ -9,7 +9,7 @@ import os
 
 class _ConfigLog(object):
     _log_level = 'INFO'
-    _log_path = './'
+    _log_path = '/var/log/vikinlu'
 
     @property
     def log_level(self):
@@ -74,6 +74,9 @@ class _Config:
     _host = "0.0.0.0"
     _port = 8888
     _debug = "False"
+
+    log_level = "INFO"
+    log_path = "/var/log/vikinlu"
 
     @staticmethod
     def init_app(app):
