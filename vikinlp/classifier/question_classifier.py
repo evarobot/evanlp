@@ -39,30 +39,62 @@ class QuestionClassfier(object):
                                        label_name, train_untrain_rate,
                                        valid_test_rate, str_path)
 
-    @staticmethod
-    def save_model(model_object, save_path):
-        try:
-            io.save(model_object, save_path)
-            log.debug("Save model to {0}".format(save_path))
+    # def save_model(self, fname):
+    #     try:
+    #         model_fname = fname + "_model.txt"
+    #         io.save(self.model, model_fname)
+    #         log.debug("Save model to {0}".format(model_fname))
+    #
+    #         feature_fname = fname + "_feature.txt"
+    #         io.save(self.feature, feature_fname)
+    #         log.debug("Save feature to {0}".format(feature_fname))
+    #     except Exception as e:
+    #         log.error(e)
+    #         return False
+    #     return True
 
-            # feature_fname = embed_path
-            # io.save(self.feature, feature_fname)
-            # log.debug("Save feature to {0}".format(feature_fname))
+    # def load_model(self, fname):
+    #     try:
+    #         model_fname = fname + "_model.txt"
+    #         self.model = io.load(model_fname)
+    #         log.debug("Load model from {0}".format(model_fname))
+    #
+    #         feature_fname = fname + "_feature.txt"
+    #         self.features = io.load(feature_fname)
+    #         log.debug("Load features from {0}".format(feature_fname))
+    #     except Exception as e:
+    #         log.error(e)
+    #         return False
+    #     return True
+
+    def save_model(self, fname):
+        try:
+            model_fname = fname + "_model.txt"
+            io.save(self, model_fname)
+            log.debug("Save model to {0}".format(model_fname))
+
+            feature_fname = fname + "_feature.txt"
+            io.save(self.embed, feature_fname)
+            log.debug("Save feature to {0}".format(feature_fname))
         except Exception as e:
             log.error(e)
             return False
         return True
 
-    @staticmethod
-    def load_model(load_path):
+    def load_model(self, fname):
         try:
-            model_object = io.load(load_path)
-            log.debug("Load model from {0}".format(load_path))
+            model_fname = fname + "_model.txt"
+            model = io.load(model_fname)
+            log.debug("Load model from {0}".format(model_fname))
+
+            feature_fname = fname + "_feature.txt"
+            self.embed = io.load(feature_fname)
+            log.debug("Load features from {0}".format(feature_fname))
 
         except Exception as e:
             log.error(e)
             return None
-        return model_object
+        return model
 
     def train(self, **kwargs):
         # 模型训练
@@ -91,7 +123,7 @@ class QuestionClassfier(object):
         for i in range(0, len(y_predicted)):
             lst_tmp.append(self.lst_label[y_predicted[i]])
         y_predicted = lst_tmp
-        y_predicted_prb = self.clf.predict_proba(embedded_x_valid)
+        y_predicted_prb = self.clf.actual_model.predict_proba(embedded_x_valid)
         if len(y_predicted) == 1:
             y_predicted = y_predicted[0]
             y_predicted_prb = max(y_predicted_prb[0])
@@ -101,6 +133,7 @@ class QuestionClassfier(object):
     def evaluation(self, x, y, is_display=False):
         # 模型评估(新版本内容)，目前为了测试旧版本，暂时disable
         # =====
+        # print(x[0])
         lst_predicted_label, _ = self.predict(x)
 
         lst_true_label = []
@@ -123,8 +156,9 @@ class QuestionClassfier(object):
                 # 非深度学习模型输入的x是一个文本的原始形式
                 else:
                     text = x[i]
-                log.info(text, "\t", lst_true_label[i],
-                                 "\t", lst_predicted_label[i])
+
+                log.info(text + "\t" + lst_true_label[i] +
+                                 "\t" + lst_predicted_label[i])
 
         log.info("*" * 30)
         log.info("Model Precise: {0}".format(precision))
@@ -132,16 +166,20 @@ class QuestionClassfier(object):
         log.info(matrix)
         report = metrics.precision_recall_fscore_support(lst_true_label,
                                                          lst_predicted_label)
-        labels = sorted(set(lst_true_label))
 
-        # 基于统计学的方法
-        # cm = confusion_matrix(lst_true_label, lst_predicted_label)
-        #
-        # if is_display:
-        #     plt.figure(figsize=(10, 10))
-        #     statistics_based.plot_confusion_matrix(cm,
-        #                                            classes=self.lst_label,
-        #                                            normalize=True)
+        labels = sorted(set(lst_true_label))
+        # # =====
+        # # 基于统计学的方法
+        # from sklearn.metrics import confusion_matrix
+        # from vikinlp.ai_toolkit.inspection import statistics_based
+        # import matplotlib.pyplot as plt
+        # # cm = confusion_matrix(lst_true_label, lst_predicted_label)
+        # plt.figure(figsize=(10, 10))
+        # statistics_based.plot_confusion_matrix(matrix,
+        #                                        classes=labels,
+        #                                        normalize=True)
+        # plt.show()
+        # # =====
 
         class_precise = dict(zip(
             labels, map(lambda single_x: "%.2f" % round(single_x, 2),
@@ -164,6 +202,7 @@ class LogisticRegressionClassifier(QuestionClassfier):
     def __init__(self):
         QuestionClassfier.__init__(self)
 
+        # 为了对sklearn中的fit函数进行封装，所以将clf指向self
         self.clf = self
         self.actual_model = LogisticRegression(C=30.0, class_weight="balanced",
                                                solver='liblinear',
