@@ -118,7 +118,7 @@ class FuzzyClassifier(object):
         model_fname = os.path.join(ConfigData.model_data_path,
                                    self._identifier)
         self._classifier.save_model(model_fname)
-        # self._classifier = self._classifier.load_model(model_fname)
+        # self._classifier.load_model(model_fname)
         # summary = self._classifier.evaluation(self._classifier.x_valid,
         #                                       self._classifier.y_valid)
         return summary
