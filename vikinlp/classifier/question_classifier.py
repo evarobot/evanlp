@@ -23,8 +23,9 @@ class QuestionClassfier(object):
         self.y_valid = None
         self.y_test = None
         self.clf = None
-        self.embed_mode = None
+        self.embed_mode = "bow"
         self.actual_model = None
+        self.data = None
 
     @classmethod
     def get_classifier(cls, algorithm):
@@ -88,7 +89,6 @@ class QuestionClassfier(object):
                 = embed.get_word2vec_embeddings(text, self.embed)
         else:
             embedded_x_valid = text
-
         y_predicted = self.clf.predict(embedded_x_valid)
 
         lst_tmp = []
@@ -105,7 +105,6 @@ class QuestionClassfier(object):
     def evaluation(self, x, y, is_display=False):
         # 模型评估(新版本内容)，目前为了测试旧版本，暂时disable
         # =====
-        # print(x[0])
         lst_predicted_label, _ = self.predict(x)
 
         lst_true_label = []
@@ -175,6 +174,7 @@ class LogisticRegressionClassifier(QuestionClassfier):
         QuestionClassfier.__init__(self)
 
         # 为了对sklearn中的fit函数进行封装，所以将clf指向self
+        # self.clf = self
         self.clf = LogisticRegression(C=30.0, class_weight="balanced",
                                       solver='liblinear',
                                       n_jobs=-1, random_state=0)
@@ -198,7 +198,8 @@ class LogisticRegressionClassifier(QuestionClassfier):
                                                                 self.embed)
 
         # 模型训练
-        self.original_fit(embedded_x_train, kwargs["y"])
+        # 注意不能省略赋值，否则会报错
+        self.clf = self.original_fit(embedded_x_train, kwargs["y"])
         self.refresh_coef()
 
         # 输出模型评估报告
@@ -206,4 +207,3 @@ class LogisticRegressionClassifier(QuestionClassfier):
 
     def refresh_coef(self):
         self.coef_ = self.clf.coef_
-
