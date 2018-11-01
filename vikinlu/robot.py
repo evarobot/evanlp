@@ -91,7 +91,7 @@ class NLURobot(object):
         log.info("----------------%s------------------" % question)
         if context["intent"] is not None:
             intent = context["intent"]
-            slots = [] if intent == "casual_talk" else self._intent2slots[intent]
+            slots = [] if intent in ["casual_talk", "sensitive", "nonsense", None] else self._intent2slots[intent]
             d_slots = self._slot.recognize(question, slots)
             if d_slots:
                 return {
@@ -115,7 +115,9 @@ class NLURobot(object):
             else:
                 d_slots = self._slot.recognize(question, ret["slots"])
             log.debug("SLOTS DETECT to {0}".format(d_slots))
-        slots = [] if intent == "casual_talk" else self._intent2slots[intent]
+        slots = [] if intent in ["casual_talk", "sensitive", "nonsense", None] else self._intent2slots[intent]
+        if intent is None:
+            intent = "casual_talk"
         return {
             "question": question,
             "intent": intent,

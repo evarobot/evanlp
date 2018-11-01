@@ -18,7 +18,8 @@ LabelData = namedtuple('LabelData', 'label, question, treenode')
 
 stopwords = []
 with open(os.path.join(PROJECT_DIR, "data/stopwords.txt")) as fp:
-    stopwords = map(lambda x: x[:-1], fp.readlines())
+    for line in fp.readlines():
+        stopwords.append(line[:-1])
 
 
 def remove_stopwords(question):
