@@ -74,7 +74,6 @@ class QuestionClassfier(object):
             log.debug("Load features from {0}".format(label_fname))
 
         except Exception as e:
-            log.error(e)
             return False
         return True
 
