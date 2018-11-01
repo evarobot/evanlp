@@ -73,12 +73,7 @@ class Sensitive(object):
 
         """
         rst = cms_gate.get_filter_words(domain_id)
-        try:
-            self._words = rst['data']['words']
-        except Exception as e:
-            import pdb
-            pdb.set_trace()
-            raise e
+        self._words = rst['data']['words']
 
     def detect(self, question):
         """ Check if question contains sensitive words.
