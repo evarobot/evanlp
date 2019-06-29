@@ -1,4 +1,4 @@
-from vikinlp.ner import event
+from evanlp.ner import event
 
 if __name__ == '__main__':
     event_recognizer = event.EventEntity()

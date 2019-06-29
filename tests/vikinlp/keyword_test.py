@@ -1,4 +1,4 @@
-from vikinlp.ner import keyword
+from evanlp.ner import keyword
 
 if __name__ == "__main__":
     KeywordRecognizer = keyword.KeyWordEntity()

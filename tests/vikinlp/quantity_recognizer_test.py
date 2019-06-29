@@ -1,6 +1,6 @@
-import vikinlp.ner.time_custom as time_custom
-import vikinlp.ner.time_standard as time_standard
-import vikinlp.ner.quantity as quantity
+import evanlp.ner.time_custom as time_custom
+import evanlp.ner.time_standard as time_standard
+import evanlp.ner.quantity as quantity
 
 if __name__ == '__main__':
     tim_detection = quantity.QuantityEntity()

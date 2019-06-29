@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from vikinlp.gate import HttpServiceGate
+from evanlp.gate import HttpServiceGate
 
 
 def test_http_gate():

@@ -8,8 +8,8 @@ import re
 import itertools
 import logging
 
-from vikinlp.gate import data_gate
-from vikinlp.config import ConfigLog
+from evanlp.gate import data_gate
+from evanlp.config import ConfigLog
 from vikicommon.log import init_logger
 log = logging.getLogger(__name__)
 init_logger(level="DEBUG", path=ConfigLog.log_path)
@@ -74,7 +74,7 @@ def expand_questions(domain_name):
 
 
 def test_algorithm():
-    from vikinlp.nlp.classifier.question_classifier import LogisticRegressionClassifier
+    from evanlp.nlp.classifier.question_classifier import LogisticRegressionClassifier
     label_data, l_label_data  = expand_questions(u"宝洁")
     model = LogisticRegressionClassifier("test")
     model.train(l_label_data)

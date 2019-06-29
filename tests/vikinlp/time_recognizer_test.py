@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 
-import vikinlp.ner.time_custom as time_custom
-import vikinlp.ner.time_standard as time_standard
+import evanlp.ner.time_custom as time_custom
+import evanlp.ner.time_standard as time_standard
 
 
 def fix_time():
