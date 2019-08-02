@@ -5,8 +5,8 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 
-from evanlp.ai_toolkit.preprocess import cv_producer, embed
-from evanlp.ai_toolkit.evaluation import f1_score
+#from evanlp.ai_toolkit.preprocess import cv_producer, embed
+#from evanlp.ai_toolkit.evaluation import f1_score
 from evanlp import io
 
 
