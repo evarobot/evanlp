@@ -2,15 +2,9 @@ numpy
 scipy
 jieba
 sklearn
-nltk
-flask
-flask-mongoengine
-Flask-SQLAlchemy==2.3.2
 requests
-gunicorn
 pandas
 keras
 mock
 flashtext
-tensorflow
 statsmodels
