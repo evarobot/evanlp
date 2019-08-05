@@ -50,3 +50,9 @@ class KeyWordEntity(object):
             return pos
         return []
 
+
+if __name__ == '__main__':
+    print(KeyWordEntity.recognize("美元和黄金的相关性", ["美元", "黄金"]))
+    print(KeyWordEntity.recognize("美元和黄金2003的相关性", ["美元", "黄金"]))
+
+
