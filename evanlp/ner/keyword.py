@@ -9,7 +9,7 @@ class KeyWordEntity(object):
         pass
 
     @classmethod
-    def recognize(self, text, cluewords):
+    def recognize(self, text, cluewords, case_sensitive=False):
         """
 
         Parameters
@@ -23,10 +23,6 @@ class KeyWordEntity(object):
         [str], 匹配的关键词数组
 
         """
-        return self._recognize_with_rules(text, cluewords)
-
-    @classmethod
-    def _recognize_with_rules(self, text, cluewords):
         # flag_negative = False
         # pos_processor = KeywordProcessor()
         # neg_processor = KeywordProcessor()
@@ -51,16 +47,32 @@ class KeyWordEntity(object):
         #     # 如果没有遇到黑名单中的词，返回识别到的关键字
         #     return pos
         # return []
+
+        # if isinstance(cluewords, str):
+        #     pattern = cluewords
+        # else:
+        #     pattern = '|'.join(cluewords)
+        # r = re.compile(pattern, flags=re.I | re.X)
+        # return r.findall(text)
+
         if isinstance(cluewords, str):
-            pattern = cluewords
-        else:
-            pattern = '|'.join(cluewords)
-        r = re.compile(pattern, flags=re.I | re.X)
-        return r.findall(text)
+            cluewords = [cluewords]
+        result = []
+        if not case_sensitive:
+            text = text.upper()
+        for word in cluewords:
+            if not case_sensitive:
+                if word.upper() in text:
+                    result.append(word)
+            else:
+                if word in text:
+                    result.append(word)
+        return result
 
 
 if __name__ == '__main__':
     print(KeyWordEntity.recognize("美元和黄金和美元的相关性", ["美元", "黄金"]))
     print(KeyWordEntity.recognize("美元和黄金的相关性", "美元"))
     print(KeyWordEntity.recognize("美元和黄金的相关性", "特别"))
+    print(KeyWordEntity.recognize("show me interest rate", "interest rate"))
 
